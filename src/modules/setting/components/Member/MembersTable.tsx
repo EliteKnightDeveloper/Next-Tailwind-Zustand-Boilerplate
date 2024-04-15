@@ -1,73 +1,72 @@
-import { FC, useState, Fragment } from 'react'
+import { FC, useState, Fragment, useEffect } from 'react'
 import DataTable from '@/common/components/DataTable'
 import Avatar from '@/common/elements/Avatar'
 import { Spread, Plus } from '@/common/components/Icons'
 import DropdownMenu from '@/common/components/DropdownMenu'
 import Button from '@/common/elements/Button'
 import { usePopup } from '@/common/hooks/usePopup'
+import { ImageUrl, ROLE } from '@/common/utils/constants'
+import api from '@/api'
+import { IUser } from '@/interfaces'
 import AddMember from './AddMember'
 import EditMember from './EditMember'
-import { HUMAN_AVATARS } from '@/common/utils/constants'
-
-interface Member {
-  id: number
-  avatar: string
-  name: string
-  email: string
-  activeAgents: number
-  permission: number
-}
-
-const data: Member[] = [
-  {
-    id: 1,
-    name: 'James Lee',
-    email: 'jameslee@gmail.com',
-    permission: 0,
-    activeAgents: 3,
-    avatar: HUMAN_AVATARS[0],
-  },
-  {
-    id: 2,
-    name: 'Sarah',
-    email: 'sarah@gmail.com',
-    permission: 1,
-    activeAgents: 3,
-    avatar: HUMAN_AVATARS[3],
-  },
-  {
-    id: 3,
-    name: 'Tran',
-    email: 'tran@gmail.com',
-    permission: 1,
-    activeAgents: 3,
-    avatar: HUMAN_AVATARS[1],
-  },
-]
+import { capitalize } from '@/common/utils'
+import { useNotifications } from '@/hooks/useNotifications'
+import { useUserStore } from '@/common/stores/userStore'
 
 const MembersTable: FC = () => {
   const [showAddMember, setShowAddMember] = useState(false)
   const [showEditMember, setShowEditMember] = useState(false)
-  const [editdata, setEditData] = useState<Member>()
-  const [members, setMembers] = useState<Member[]>(data)
-  const { showConfirm, hideConfirm } = usePopup()
+  const [user] = useUserStore((state) => [state.user])
+  const [currentUser, setCurrentUser] = useState<IUser>()
+  const { showConfirm, setIsConfirming, hideConfirm } = usePopup()
+  const [users, setUsers] = useState<IUser[]>([])
+  const [isLoading, setLoading] = useState(true)
+  const { addNotification } = useNotifications()
+
+  useEffect(() => {
+    api.users.getUsers().then((data) => {
+      setUsers(data)
+      setLoading(false)
+    })
+  }, [])
 
   const showAddMemberModal = () => {
     setShowAddMember(!showAddMember)
   }
 
-  const showEditMemberModal = (data: Member) => {
-    setEditData(data)
+  const showEditMemberModal = (data: IUser) => {
+    setCurrentUser(data)
     setShowEditMember(!showEditMember)
   }
 
-  const removeMember = () => {
+  const removeMember = (userid: string) => {
     showConfirm({
       title: 'Remove this member?',
       confirmText: 'Remove',
       message: 'This action is permanent and cannot be undone.',
       onConfirm: () => {
-        hideConfirm()
+        setIsConfirming(true)
+        api.users
+          .deleteUser(userid)
+          .then(() => {
+            setUsers(users.filter((user) => user.id !== userid))
+            addNotification({
+              text: 'Remove member success.',
+              type: 'Success',
+            })
+
+            hideConfirm()
+            setIsConfirming(false)
+          })
+          .catch((err) => {
+            addNotification({
+              text: err.response.data.message,
+              type: 'Fail',
+            })
+
+            setIsConfirming(false)
+          })
       },
     })
   }
@@ -83,25 +82,35 @@ const MembersTable: FC = () => {
             Invite your coworkers and set their access level.
           </span>
         </div>
-        <div className="flex flex-row gap-3 max-sm:justify-between">
-          <Button
-            text="Add member"
-            icon={<Plus />}
-            onClick={showAddMemberModal}
-          />
-        </div>
+        {user?.role !== ROLE.MANAGER && user?.role !== ROLE.VIEWER && (
+          <div className="flex flex-row gap-3 max-sm:justify-between">
+            <Button
+              text="Add member"
+              icon={<Plus />}
+              onClick={showAddMemberModal}
+              className="px-4"
+            />
+          </div>
+        )}
       </div>
-      <AddMember show={showAddMember} showModal={showAddMemberModal} />
+      <AddMember
+        show={showAddMember}
+        showModal={showAddMemberModal}
+        onCreate={(newUser) => {
+          setUsers([...users, newUser])
+        }}
+      />
       <div className="mt-4 max-sm:overflow-x-scroll scrollbar-hide">
         <DataTable
-          data={members}
+          data={users}
+          loading={isLoading}
           columns={[
             {
               name: 'User',
               cell: (row) => (
                 <div className="flex items-center gap-3 py-4">
                   <Avatar
-                    src={row.avatar}
+                    src={`${ImageUrl}/${row.image}`}
                     alt={''}
                     width={40}
                     height={40}
@@ -121,17 +130,9 @@ const MembersTable: FC = () => {
               ),
             },
             {
-              name: 'Active Agents',
+              name: 'Role',
               cell: (row) => (
-                <span className="text-white">{row.activeAgents}</span>
-              ),
-            },
-            {
-              name: 'Permission',
-              cell: (row) => (
-                <span className="text-white">
-                  {row.permission === 0 ? 'Can View' : 'Full Access'}
-                </span>
+                <span className="text-white">{capitalize(row.role)}</span>
               ),
             },
             {
@@ -142,11 +143,13 @@ const MembersTable: FC = () => {
                   options={[
                     {
                       title: 'Edit',
-                      action: () => showEditMemberModal(row),
+                      action: () => {
+                        showEditMemberModal(row)
+                      },
                     },
                     {
                       title: 'Remove',
-                      action: removeMember,
+                      action: () => removeMember(row.id),
                       color: 'text-red',
                     },
                   ]}
@@ -160,8 +163,38 @@ const MembersTable: FC = () => {
       </div>
       <EditMember
         show={showEditMember}
-        showModal={() => showEditMemberModal(editdata!)}
-        data={editdata!}
+        showModal={(show) => setShowEditMember(show)}
+        data={currentUser!}
+        onTransferOwnership={(from, to, role) => {
+          setUsers(
+            users.map((u) => {
+              if (u.id === from) {
+                return {
+                  ...u,
+                  role,
+                }
+              } else if (u.id === to) {
+                return {
+                  ...u,
+                  role: ROLE.OWNER,
+                }
+              }
+              return u
+            })
+          )
+        }}
+        onSave={(updatedRole) => {
+          setUsers(
+            users.map((user) =>
+              user.id === currentUser?.id
+                ? {
+                    ...user,
+                    role: updatedRole,
+                  }
+                : user
+            )
+          )
+        }}
       />
     </Fragment>
   )

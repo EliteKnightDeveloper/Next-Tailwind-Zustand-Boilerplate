@@ -48,6 +48,10 @@ const Avatar: FC<AvatarProps> = ({
           borderClass,
           className ? className : ''
         )}
+        style={{
+          maxWidth: width ? `${width}px` : 'auto',
+          maxHeight: height ? `${height}px` : 'auto',
+        }}
         priority
       />
       {badgeIcon === 'icon' ? (

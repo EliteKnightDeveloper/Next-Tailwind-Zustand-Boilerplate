@@ -12,6 +12,7 @@ import Loading from '@/common/components/Loading'
 import Avatar from '@/common/elements/Avatar'
 import { ImageUrl } from '@/common/utils/constants'
 import Required from '@/common/elements/Required'
+import { useAgents } from '@/hooks/useAgents'
 
 const Agent: FC = () => {
   const router = useRouter()
@@ -25,6 +26,7 @@ const Agent: FC = () => {
     ImageUrl + '/Default.png'
   )
   const [file, setFile] = useState<File>()
+  const { createAgent } = useAgents()
 
   const clearValues = () => {
     setValue('name', '')
@@ -36,42 +38,29 @@ const Agent: FC = () => {
   }
 
   const onSubmit = (register: IAgent) => {
+    if (!file) {
+      addNotification({
+        type: 'Fail',
+        text: 'Please add Avatar before saving.',
+      })
+      return
+    }
     register.objective = encodeURIComponent(register.objective)
+    register.examples = encodeURIComponent(register.examples)
 
     setLoading(true)
-    api.agents
-      .getAgentsByOwner()
-      .then((response) => {
-        const dupicated = response.some((agent) => agent.name === register.name)
-        if (!dupicated) {
-          api.agents
-            .createAgent(user!.id, register, file!)
-            .then((data) => {
-              setLoading(false)
-              router.push(`/agents/edit/${data.id}`)
-              addNotification({
-                type: 'Success',
-                text: 'Agent Create Success',
-              })
-              clearValues()
-            })
-            .catch(() => {
-              setLoading(false)
-              addNotification({
-                type: 'Fail',
-                text: 'Agent Create Fail',
-              })
-              clearValues()
-            })
-        } else {
-          setLoading(false)
-          addNotification({
-            type: 'Fail',
-            text: 'Agent Name Duplicated',
-          })
-        }
+    createAgent(register, file)
+      .then((data) => {
+        setLoading(false)
+        router.push(`/agents/edit/${data.id}`, undefined, {
+          shallow: true,
+        })
+        clearValues()
       })
-      .catch(() => {})
+      .catch(() => {
+        setLoading(false)
+        clearValues()
+      })
   }
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -128,8 +117,8 @@ const Agent: FC = () => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('welcome')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                How would you like your agent to greet you? Example: Hello
-                @user, nice to meet you!
+                How would you like your agent to greet you when you start the
+                conversation?
               </span>
             </div>
           </div>
@@ -140,8 +129,7 @@ const Agent: FC = () => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Input type="text" {...register('role')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                What's the role of your AI Agent? Example: Social Media Manager,
-                etc.
+                What assumed role do you want your agent to be?
               </span>
             </div>
           </div>
@@ -152,8 +140,9 @@ const Agent: FC = () => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('objective')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                What are the main objectives for the role and agent? Example: As
-                a soc med manager, I involve in driving our social media pages.
+                What are the main objectives of your agent? Give a short
+                description of responsibilities, how the agent should respond
+                and what the agent should not do.
               </span>
             </div>
           </div>
@@ -169,9 +158,7 @@ const Agent: FC = () => {
                 className="w-full"
               />
               <span className="flex text-sm font-medium text-gray-400">
-                What's the personality of your AI agent? Examples include, talk
-                like a pirate, only reply in the style of sales person, warm,
-                friendly, professional, direct.
+                What's the personality of your AI agent?
               </span>
             </div>
           </div>
@@ -182,8 +169,8 @@ const Agent: FC = () => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('examples')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                Provide any examples of how you would like your agent to
-                respond.
+                What are some examples of how the agent should respond to
+                questions?
               </span>
             </div>
           </div>

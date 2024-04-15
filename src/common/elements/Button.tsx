@@ -66,7 +66,7 @@ const Button: FC<ButtonProps> = ({
     <button
       {...props}
       className={classNames(
-        'flex items-center justify-center font-semibold h-fit cursor-pointer transition-all duration-100 outline-none break-keep',
+        'flex items-center justify-center font-semibold h-fit cursor-pointer transition-all duration-100 outline-none break-keep disabled:cursor-not-allowed',
         variant,
         widthClass,
         sizeClass,

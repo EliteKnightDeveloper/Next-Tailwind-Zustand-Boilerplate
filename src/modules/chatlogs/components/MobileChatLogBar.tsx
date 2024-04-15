@@ -8,7 +8,7 @@ import { useChatStore } from '@/common/stores/chatStore'
 import api from '@/api'
 import Message from '@/modules/chats/components/ChatPanel/Message'
 import { IMessage } from '@/interfaces'
-import { exportExcel } from '@/common/utils/excel'
+import { exportChatLogs } from '@/common/utils/excel'
 
 const MobileChatLogBar: FC = () => {
   const [isMobileChatLogBarCollapsed, setMobileChatLogBarCollapsed] =
@@ -26,10 +26,10 @@ const MobileChatLogBar: FC = () => {
 
   useEffect(() => {
     setMessages([])
-    if (chatroomID !== 0) {
+    if (chatroomID !== 'all') {
       setLoading(true)
       api.chatLogs
-        .getChatLogsByChatroomID(chatroomID!)
+        .getChatLogsByChatroomID(chatroomID)
         .then((response) => {
           const newMessages = response.chat.messages
             .slice(0, (response.chat.messages.length - 1) / 2)
@@ -49,22 +49,6 @@ const MobileChatLogBar: FC = () => {
   useEffect(() => {
     setMessages([])
   }, [])
-
-  const exportToExcel = () => {
-    const data = chatLog
-
-    const headers = [
-      'Customer',
-      'Channel',
-      'Message',
-      'Datetime',
-      'Agent',
-      'Credits Used',
-      'Interaction Time',
-      'Date Exported',
-    ]
-    exportExcel(data, headers, 'ChatLog History')
-  }
 
   return (
     <div
@@ -100,12 +84,6 @@ const MobileChatLogBar: FC = () => {
                 </span>
                 {/* <Quote /> */}
               </div>
-              <Button
-                text="Export"
-                variant="gradient"
-                icon={<Upload />}
-                onClick={exportToExcel}
-              />
             </div>
           </Fragment>
         )}

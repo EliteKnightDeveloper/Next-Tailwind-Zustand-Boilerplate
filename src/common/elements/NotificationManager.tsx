@@ -31,7 +31,7 @@ const Notification: FC<Notification> = ({ id, type, text }) => {
     <Fragment>
       <div
         className={classNames(
-          'relative transform rounded-xl text-left transition-all p-3 animate-fade-up z-[10000] bg-[#17181A] text-white max-sm:w-full'
+          'relative transform rounded-xl text-left transition-all p-3 animate-fade-up z-[1000000] my-3 bg-[#17181A] text-white max-sm:w-full'
         )}
       >
         <div
@@ -56,7 +56,7 @@ const NotificationManager: FC<NotificationManager> = ({ children }) => {
   return (
     <Fragment>
       {children}
-      <div className="fixed z-[10000] xl:top-0 left-[50%] -translate-x-[50%] p-4 max-sm:translate-y-[30%]">
+      <div className="fixed z-[10000] top-0 left-[50%] -translate-x-[50%] p-4 max-sm:translate-y-[30%]">
         {notifications.map((notification) => (
           <Notification key={notification.id} {...notification} />
         ))}

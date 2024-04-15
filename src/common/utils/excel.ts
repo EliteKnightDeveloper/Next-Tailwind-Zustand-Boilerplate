@@ -1,47 +1,50 @@
-import * as FileSaver from 'file-saver'
-import XLSX from 'sheetjs-style'
-import { convertString2Date, formatNumber, getCurrentDateTime } from './date'
+import xlsx from 'xlsx-populate'
+import { saveAs } from 'file-saver'
 
-export const exportExcel = (data: any, headers: string[], name: string) => {
-  const result = []
-  result.push({
-    Customer: '',
-    Channel: data.channel,
-    Message: data.messages
-      .map((message: string, index: number) => {
-        if (index % 2 === 0) {
-          return 'You - ' + message
-        } else {
-          return data.agentName + ' - ' + message
-        }
-      })
-      .join('\n'),
-    Datetime: convertString2Date(data.start_time),
-    Agent: data.agentName,
-    'Credits Used': '',
-    'Interaction Time': formatNumber(data.interaction_time),
-    'Date Exported': getCurrentDateTime(),
+function getSheetData(data: any[], header: string[]): any {
+  var fields = Object.keys(data[0])
+  var sheetData = data.map(function (row) {
+    return fields.map(function (fieldName) {
+      return row[fieldName] ? row[fieldName] : ''
+    })
   })
+  sheetData.unshift(header)
+  return sheetData
+}
 
-  const ws = XLSX.utils.json_to_sheet(result)
-  for (let i = 0; i < headers.length; i++) {
-    const cell = ws[XLSX.utils.encode_cell({ r: 0, c: i })]
-    if (!cell.s) {
-      cell.s = {}
-    }
-    if (!cell.s.font) {
-      cell.s.font = {}
-    }
-    cell.s.font.bold = true
-  }
-  const wb = { Sheets: { data: ws }, SheetNames: ['Sheet'] }
-  const excelBuffer = XLSX.write(wb, {
-    bookType: 'xlsx',
-    type: 'array',
-    cellStyles: true,
+export const exportChatLogs = (data: any[]) => {
+  const headers = [
+    'Channel',
+    'Agent',
+    'Start Time',
+    'End Time',
+    'Interaction Time',
+    'Customer Message',
+    'Agent Message',
+  ]
+
+  xlsx.fromBlankAsync().then(async (workbook) => {
+    const sheet = workbook.sheet(0)
+    const sheetData = getSheetData(data, headers)
+    const totalColumns = sheetData[0].length
+
+    sheet.cell('A1').value(sheetData)
+    sheet.cell('A1').column().width(20)
+    sheet.cell('B1').column().width(15)
+    sheet.cell('C1').column().width(20)
+    sheet.cell('D1').column().width(20)
+    sheet.cell('E1').column().width(20)
+    sheet.cell('F1').column().width(50)
+    sheet.cell('G1').column().width(50)
+
+    const range = sheet.usedRange()
+    const endColumn = String.fromCharCode(64 + totalColumns)
+    sheet.row(1).style('bold', true)
+    sheet.range('A1:' + endColumn + '1').style('fill', 'BFBFBF')
+    range?.style('border', true)
+
+    return workbook.outputAsync().then((res: any) => {
+      saveAs(res, 'Conversations.xlsx')
+    })
   })
-  const finalData = new Blob([excelBuffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  })
-  FileSaver.saveAs(finalData, 'ChatLog.xlsx')
 }

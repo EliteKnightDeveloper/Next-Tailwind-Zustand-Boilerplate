@@ -5,8 +5,8 @@ import { persist } from 'zustand/middleware'
 interface ChatStoreInterface {
   chats: IChat[]
   setChats: (chats: IChat[]) => void
-  chatroomID: number | null
-  setChatroomID: (chatroomID: number | null) => void
+  chatroomID: string
+  setChatroomID: (chatroomID: string) => void
   chatLog: IChat
   setChatLog: (chatLog: IChat) => void
   contact: IContact
@@ -19,7 +19,7 @@ const chatStore = (set: any) => ({
     set({ chats })
   },
   chatroomID: null,
-  setChatroomID: (chatroomID: number | number) => {
+  setChatroomID: (chatroomID: string) => {
     set({ chatroomID })
   },
   chatLog: {},

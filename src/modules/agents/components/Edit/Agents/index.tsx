@@ -11,6 +11,7 @@ import Loading from '@/common/components/Loading'
 import { useNotifications } from '@/hooks/useNotifications'
 import { ImageUrl } from '@/common/utils/constants'
 import Required from '@/common/elements/Required'
+import { useAgents } from '@/hooks/useAgents'
 
 interface AgentProps {
   isLoading: boolean
@@ -27,6 +28,7 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
     mode: 'all',
   })
   const [file, setFile] = useState<File>()
+  const { updateAgent } = useAgents()
 
   const setValues = (data: IAgent) => {
     setSelectedImage(ImageUrl + '/' + data.image)
@@ -55,10 +57,11 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
 
   const onSubmit = (register: IAgent) => {
     register.objective = encodeURIComponent(register.objective)
+    register.examples = encodeURIComponent(register.examples)
 
     setUpdating(true)
-    api.agents
-      .updateAgent(query.id!.toString(), register, file)
+
+    updateAgent(query.id!.toString(), register, file)
       .then((response) => {
         setValues(response)
         setUpdating(false)
@@ -130,8 +133,8 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('welcome')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                How would you like your agent to greet you? Example: Hello
-                @user, nice to meet you!
+                How would you like your agent to greet you when you start the
+                conversation?
               </span>
             </div>
           </div>
@@ -142,8 +145,7 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Input type="text" {...register('role')} className="w-full" />
               <span className="flex text-sm font-medium text-gray-400">
-                What's the role of your AI Agent? Example: Social Media Manager,
-                Customer Service, etc.
+                What assumed role do you want your agent to be?
               </span>
             </div>
           </div>
@@ -158,8 +160,9 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
                 rows={8}
               />
               <span className="flex text-sm font-medium text-gray-400">
-                What are the main objectives for the role and agent? Example: As
-                a soc med manager, I involve in driving our social media pages.
+                What are the main objectives of your agent? Give a short
+                description of responsibilities, how the agent should respond
+                and what the agent should not do.
               </span>
             </div>
           </div>
@@ -170,9 +173,7 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('tone')} className="w-full" rows={8} />
               <span className="flex text-sm font-medium text-gray-400">
-                What's the personality of your AI agent? Examples include, talk
-                like a pirate, only reply in the style of sales person, warm,
-                friendly, professional, direct.
+                What's the personality of your AI agent?
               </span>
             </div>
           </div>
@@ -183,8 +184,8 @@ const Agent: FC<AgentProps> = ({ agent, isLoading }) => {
             <div className="flex flex-col items-start w-full gap-4 2xl:ml-8 max-sm:gap-2">
               <Textarea {...register('examples')} className="w-full" rows={8} />
               <span className="flex text-sm font-medium text-gray-400">
-                Provide any examples of how you would like your agent to
-                respond.
+                What are some examples of how the agent should respond to
+                questions?
               </span>
             </div>
           </div>

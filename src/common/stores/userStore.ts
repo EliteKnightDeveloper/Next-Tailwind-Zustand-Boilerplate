@@ -9,6 +9,8 @@ interface UserStoreInterface {
   setEditAgent: (editAgent: string | null) => void
   loginTime: string | null
   setLoginTime: (loginTime: string | null) => void
+  tenant: string
+  setTenant: (tenant: string) => void
 }
 
 const userStore = (set: any) => ({
@@ -24,6 +26,8 @@ const userStore = (set: any) => ({
   setLoginTime: (loginTime: string | string) => {
     set({ loginTime })
   },
+  tenant: '',
+  setTenant: (tenant: string) => set({ tenant }),
 })
 
 const persistedCreditStore: any = persist(userStore, { name: 'USER' })

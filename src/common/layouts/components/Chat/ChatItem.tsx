@@ -19,9 +19,10 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { useRouter } from 'next/router'
 import { useThemeStore } from '@/common/stores/themeStore'
 import Avatar from '@/common/elements/Avatar'
+import Typewriter from '@/common/elements/TypeWriter'
 
 interface ChatItemProps {
-  id: number
+  id: string
   text: string
   messages: number
   avatar: string
@@ -103,7 +104,7 @@ const ChatItem: FC<ChatItemProps> = ({ id, text, messages, avatar }) => {
             type: 'Success',
             text: 'Delete Chat Success',
           })
-          router.push(appLinks.agents)
+          router.push(appLinks.agents, undefined, { shallow: true })
         })
       },
     })
@@ -123,18 +124,18 @@ const ChatItem: FC<ChatItemProps> = ({ id, text, messages, avatar }) => {
         !isSidebarCollapsed ? 'px-6' : ''
       )}
       onClick={() => {
-        router.push(`${appLinks.chat}/${id}`)
+        router.push(`${appLinks.chat}/${id}`, undefined, { shallow: true })
         setMobileSidebarCollapsed(true)
       }}
     >
       {mode === 0 ? (
-        <div className="flex flex-1 gap-1 pr-1">
-          <span className="flex-1 overflow-hidden text-sm font-medium text-white document-title h-fit">
-            {name}
-          </span>
+        <div className="flex flex-1 gap-1 pr-1 w-0">
+          <div className="flex-1 overflow-hidden text-sm font-medium text-white document-title h-fit">
+            <Typewriter text={name} delay={50} />
+          </div>
           <Avatar
             alt={''}
-            src={ImageUrl + '/Default.png'}
+            src={`${ImageUrl}/${avatar}`}
             width={25}
             height={25}
             border

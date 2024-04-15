@@ -45,11 +45,7 @@ const IntegrationCard: FC<IntegrationCardProps> = ({
             <GradientCircleCheck />
           )}
         </div>
-        <Toggle
-          checked={active}
-          onToggle={onToggle!}
-          role={name}
-        />
+        <Toggle checked={active} onToggle={onToggle!} role={name} />
       </CardFooter>
     </Card>
   )

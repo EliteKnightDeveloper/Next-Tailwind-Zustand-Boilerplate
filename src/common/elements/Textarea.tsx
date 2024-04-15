@@ -3,7 +3,7 @@ import { classNames } from '@/common/utils'
 import React from 'react'
 
 export interface TextAreaProps
-  extends React.PropsWithoutRef<JSX.IntrinsicElements['textarea']> { }
+  extends React.PropsWithoutRef<JSX.IntrinsicElements['textarea']> {}
 
 const Textarea: FC<TextAreaProps> = React.forwardRef<
   HTMLTextAreaElement,
@@ -19,7 +19,10 @@ const Textarea: FC<TextAreaProps> = React.forwardRef<
 
   return (
     <div
-      className={classNames('form-container w-full pr-1.5', hasFocus ? 'active' : '')}
+      className={classNames(
+        'form-container w-full pr-1.5',
+        hasFocus ? 'active' : ''
+      )}
     >
       <textarea
         {...props}

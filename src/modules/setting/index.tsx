@@ -60,12 +60,6 @@ const Setting: FC = () => {
             </div>
             <div className="flex flex-row gap-4">
               <span className="w-[200px] font-normal text-gray-400 max-sm:w-[80px] text-sm">
-                Password
-              </span>
-              <span className="text-sm font-normal text-white"></span>
-            </div>
-            <div className="flex flex-row gap-4">
-              <span className="w-[200px] font-normal text-gray-400 max-sm:w-[80px] text-sm">
                 Timezone
               </span>
               <span className="text-sm font-normal text-white">
@@ -87,10 +81,10 @@ const Setting: FC = () => {
           />
         </div>
       </div>
-      <div className="flex flex-col mt-8 max-sm:mt-6">
+      <div className="flex flex-col mt-14 max-sm:mt-6">
         <Company />
       </div>
-      <div className="flex flex-col mt-8 max-sm:mt-6">
+      <div className="flex flex-col mt-14 max-sm:mt-6">
         <MembersTable />
       </div>
       {/* <div className="flex flex-col mt-8">

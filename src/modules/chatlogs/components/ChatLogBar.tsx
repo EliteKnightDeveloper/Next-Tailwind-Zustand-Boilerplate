@@ -1,5 +1,5 @@
 import { FC, Fragment, useEffect, useState } from 'react'
-import { Collapse, Expand, Quote, Upload } from '@/common/components/Icons'
+import { Collapse, Expand, Upload } from '@/common/components/Icons'
 import Button from '@/common/elements/Button'
 import { useThemeStore } from '@/common/stores/themeStore'
 import { classNames } from '@/common/utils'
@@ -8,7 +8,6 @@ import { useChatStore } from '@/common/stores/chatStore'
 import api from '@/api'
 import Message from '@/modules/chats/components/ChatPanel/Message'
 import { IMessage } from '@/interfaces'
-import { exportExcel } from '@/common/utils/excel'
 
 const ChatLogbar: FC = () => {
   const [isChatLogBarCollapsed, setChatLogBarCollapsed] = useThemeStore(
@@ -24,10 +23,10 @@ const ChatLogbar: FC = () => {
 
   useEffect(() => {
     setMessages([])
-    if (chatroomID !== 0) {
+    if (chatroomID !== 'all') {
       setLoading(true)
       api.chatLogs
-        .getChatLogsByChatroomID(chatroomID!)
+        .getChatLogsByChatroomID(chatroomID)
         .then((response) => {
           const newMessages = response.chat.messages.map((message, index) => ({
             isAgent: index % 2 === 1,
@@ -48,22 +47,6 @@ const ChatLogbar: FC = () => {
     setMessages([])
     setChatLogBarCollapsed(false)
   }, [])
-
-  const exportToExcel = () => {
-    const data = chatLog
-
-    const headers = [
-      'Customer',
-      'Channel',
-      'Message',
-      'Datetime',
-      'Agent',
-      'Credits Used',
-      'Interaction Time',
-      'Date Exported',
-    ]
-    exportExcel(data, headers, 'ChatLog History')
-  }
 
   return (
     <div
@@ -109,19 +92,8 @@ const ChatLogbar: FC = () => {
                 </span>
                 {/* <Quote /> */}
               </div>
-              <Button
-                text="Export"
-                variant="gradient"
-                icon={<Upload />}
-                onClick={exportToExcel}
-              />
             </div>
           </Fragment>
-        )}
-        {!isChatLogBarCollapsed && (
-          <div className="px-4 py-4 mt-4 rounded-xl bg-gradient-to-r from-darkGradientStart to-darkGradientEnd">
-            <Upload />
-          </div>
         )}
       </div>
       {isChatLogBarCollapsed && messages.length > 1 && (

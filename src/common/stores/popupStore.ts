@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+export type PopupType = 'Delete' | 'Normal'
+
 interface CallbackInterface {
   (): void
 }
@@ -13,6 +15,9 @@ interface PopupStoreInterface {
 
   title: string
   setTitle: (title: string) => void
+
+  type: PopupType
+  setType: (type: PopupType) => void
 
   confirmText: string
   setConfirmText: (confirmText: string) => void
@@ -52,6 +57,9 @@ const popupStore = (set: any) => ({
   setMessage: (message: string) => {
     set({ message })
   },
+
+  type: 'Delete' as PopupType,
+  setType: (type: PopupType) => set({ type }),
 
   isConfirming: false,
   setIsConfirming: (isConfirming: boolean) => {

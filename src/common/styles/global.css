@@ -3,6 +3,7 @@
 body {
   font-family: 'Poppins', sans-serif;
   background-color: #111315;
+  scroll-behavior: smooth;
 }
 
 .pin-divider {
@@ -130,6 +131,11 @@ button.gradient {
     #562586 100%
   );
   background-size: 200% auto;
+}
+
+button.gradient:disabled {
+  background-image: none;
+  @apply bg-slate-400;
 }
 
 .full-height {
@@ -455,7 +461,7 @@ textarea::-webkit-resizer {
 
   transition: all 0.8s;
 
-  padding: 1px;
+  padding: 2px;
   background: linear-gradient(
       111.27deg,
       rgba(156, 95, 255, 0.5) -4.86%,
@@ -711,6 +717,22 @@ textarea::-webkit-resizer {
   animation: spinner 2s linear infinite;
 }
 
+.type-effect:after {
+  content: ' ';
+  animation: blink 200ms linear infinite alternate;
+  border-left: 6px solid #bdbdbd;
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes spinner {
   0% {
     transform: rotate(0deg);
@@ -720,6 +742,38 @@ textarea::-webkit-resizer {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+.type-writer-text {
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+}
+.type-writer-inner {
+  display: inline-block;
+  width: 100%;
+}
+.type-writer-text:hover,
+.type-writer-inner:hover {
+  width: auto;
+}
+.type-writer-inner:hover .type-writer-text {
+  animation: type-write-scroll infinite linear;
+}
+.type-writer-scroll {
+  width: 100%;
+  overflow: hidden;
+}
+@keyframes type-write-scroll {
+  0% {
+    left: 0px;
+  }
+  100% {
+    left: calc(-100% + var(--my-scroll-var) - 10px);
   }
 }
 

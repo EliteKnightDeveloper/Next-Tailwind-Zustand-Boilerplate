@@ -56,7 +56,7 @@ const docs = {
     )
   },
 
-  deleteDoc: (docId: number) => request.delete(`/docs/${docId}`),
+  deleteDoc: (docId: string) => request.delete(`/docs/${docId}`),
 
   deleteAllDocs: () => request.post(`/doc/deleteall`, {}),
 }

@@ -36,12 +36,12 @@ const data: IOption[] = [
 ]
 
 const Dashboard: FC = () => {
-  const [tab, setTab] = useState(3)
+  const [tab, setTab] = useState(30)
   const [seats, setSeats] = useState<IOption[]>(data)
   const [seat, setSeat] = useState<IOption>(data[0])
 
   const [times, setTimes] = useState<IOption[]>(Times)
-  const [time, setTime] = useState<IOption>(Times[0])
+  const [time, setTime] = useState<IOption>(Times[2])
 
   const changeSeatSelect = (value: IOption) => {
     setSeat(value)
@@ -49,7 +49,7 @@ const Dashboard: FC = () => {
 
   const changeTimeSelect = (value: IOption) => {
     setTime(value)
-    setTab(value.value!)
+    setTab(~~value.value!)
   }
 
   return (
@@ -104,14 +104,41 @@ const Dashboard: FC = () => {
             </div>
           </div>
         </div>
-        <AgentEngagment />
+        {/* <AgentEngagment /> */}
         <div className="flex flex-row w-full h-full gap-6 mt-3 max-sm:flex-col">
-          <div className="flex flex-col flex-initial w-[70%]">
+          <div className="flex flex-col flex-1">
             <TQA />
           </div>
-          <div className="flex flex-col flex-initial w-[30%]">
+          <div className="flex flex-col w-[360px] max-md:w-full">
             <RecentChat />
           </div>
+          {/* <div className="flex flex-col flex-initial w-[35%] max-sm:w-full">
+            <Members />
+            <div className="flex flex-col w-auto p-6 mt-6 bg-black rounded-xl form-container h-fit">
+              <div className="flex flex-col">
+                <div className="flex flex-row items-center w-full gap-3">
+                  <span className="text-xl font-semibold text-white max-sm:text-base">
+                    Tutorial
+                  </span>
+                  <Quote />
+                </div>
+                <div className="mt-4">
+                  <ReactPlayer
+                  className="react-player"
+                  url="https://vimeo.com/861501584?share=copy"
+                  width="100%"
+                  height="100%"
+                  playing
+                />
+                </div>
+                <div className="flex flex-col gap-2 mt-4">
+                  <span className="text-base font-semibold text-white max-sm:text-sm">
+                    Get started with Azara
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div> */}
         </div>
       </div>
     </Fragment>

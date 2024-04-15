@@ -9,8 +9,8 @@ import DropdownMenu from '@/common/components/DropdownMenu'
 
 interface DocumentCardProps {
   data: IDoc
-  onDelete: (docId: number) => void
-  onReupload: (docId: number) => void
+  onDelete: (docId: string) => void
+  onReupload: (docId: string) => void
 }
 
 export const DocumentCardSkeleton: FC = () => (

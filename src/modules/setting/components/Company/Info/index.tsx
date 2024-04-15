@@ -22,7 +22,7 @@ const CompanyInfo: FC = () => {
   const [flag, setFlag] = useState(true)
   const user = useUserStore((state) => state.user)
   const [file, setFile] = useState<File>()
-  const [compId, setCompId] = useState(0)
+  const [compId, setCompId] = useState('')
 
   const setValues = (data: ICompany) => {
     setSelectedImage(ImageUrl! + '/' + data.image)

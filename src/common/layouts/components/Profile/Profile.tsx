@@ -13,19 +13,19 @@ import { INotification } from '@/interfaces'
 
 const data: INotification[] = [
   {
-    id: 0,
+    id: '',
     text: 'New web widget chat - John Smith',
     date: '20/10/23 - 12:35',
     status: true,
   },
   {
-    id: 1,
+    id: '',
     text: 'New web widget chat - Mike',
     date: '20/10/23 - 12:35',
     status: false,
   },
   {
-    id: 2,
+    id: '',
     text: 'New web widget chat - John Smith',
     date: '20/10/23 - 12:35',
     status: true,

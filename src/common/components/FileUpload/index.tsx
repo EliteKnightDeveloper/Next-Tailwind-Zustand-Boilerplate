@@ -238,22 +238,22 @@ export const FileBar: FC<Props> = ({
       {mode == 'full' && (
         <div className="flex flex-row items-center justify-between w-full gap-6 max-sm:items-start">
           <div className="flex flex-row items-center w-full gap-6 max-sm:flex-col max-sm:gap-4">
-            <span className="text-base font-semibold text-white 2xl:whitespace-pre">
+            <span className="text-sm font-semibold text-white 2xl:whitespace-pre w-[120px] overflow-hidden text-ellipsis">
               {file.name}
             </span>
-            <div className="flex w-full max-sm:justify-start">
+            <div className="flex flex-1 max-sm:justify-start">
               <ProgressBar percent={percent} />
             </div>
           </div>
           {uploading && (
-            <span className="text-base font-medium text-gray-100">
+            <span className="text-sm font-medium text-gray-100 w-[60px]">
               {Number.isNaN(Math.ceil(percent)) ? '0' : Math.ceil(percent)}%
             </span>
           )}
           {!uploading && (
-            <div className="flex flex-row items-center gap-4">
+            <div className="flex flex-row items-center w-[60px]">
               <span
-                className="text-base font-medium text-gray-400 cursor-pointer"
+                className="text-sm font-medium text-gray-400 cursor-pointer"
                 onClick={() => removeFile(id)}
               >
                 Decline

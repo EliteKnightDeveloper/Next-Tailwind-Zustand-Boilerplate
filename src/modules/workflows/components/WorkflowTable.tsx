@@ -111,7 +111,10 @@ const AllWorkflows: FC = () => {
                   options={[
                     {
                       title: 'Edit',
-                      action: () => router.push(`/workflows/edit/${row.id}`),
+                      action: () =>
+                        router.push(`/workflows/edit/${row.id}`, undefined, {
+                          shallow: true,
+                        }),
                     },
                     {
                       title: 'Duplicate',

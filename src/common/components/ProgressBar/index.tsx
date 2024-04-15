@@ -9,12 +9,13 @@ const ProgressBar: FC<ProgressBarProps> = ({ percent }) => {
   return (
     <div
       className={classNames(
-        'h-2 bg-[#2C2E33] rounded-full z-10 relative',
-        percent > 0 ? 'w-full' : ''
+        'h-2 bg-[#2C2E33] rounded-full w-full z-10 relative'
       )}
     >
       <div
-        className={classNames('h-2 bg-neon-100 rounded-full absolute')}
+        className={classNames(
+          'h-2 bg-gradient-to-r from-darkGradientStart to-darkGradientEnd rounded-full absolute transition-all duration-500'
+        )}
         style={{ width: `${percent}%` }}
       ></div>
     </div>

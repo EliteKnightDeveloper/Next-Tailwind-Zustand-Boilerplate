@@ -1,14 +1,15 @@
 import request from './request'
 
 interface CreateInput {
-  agent_id: number
+  agent_id: string
   welcome_message: string
+  contact_fields: string[]
 }
 
 interface CreateOutput {
-  agent_id: number
+  agent_id: string
   welcome_message: string
-  id: number
+  id: string
 }
 
 const webwidget = {

@@ -38,7 +38,7 @@ const AgentInfo: FC<AgentInfoProps> = ({ agent, isLoading, msgs }) => {
   const [docs, setDocs] = useDocStore((state) => [state.docs, state.setDocs])
 
   const editAgent = () => {
-    router.push(`/agents/edit/${agent.id}`)
+    router.push(`/agents/edit/${agent.id}`, undefined, { shallow: true })
   }
 
   const setPanel = (type: string) => {
@@ -46,12 +46,12 @@ const AgentInfo: FC<AgentInfoProps> = ({ agent, isLoading, msgs }) => {
   }
 
   const agentChatLog = () => {
-    router.push(`/conversations/${agent.id}`)
+    router.push(`/conversations/${agent.id}`, undefined, { shallow: true })
   }
 
   useEffect(
     () => {
-      if (agent.id !== 0)
+      if (agent.id !== '')
         api.docs
           .getDocsByChat(queryParam.id?.toString() || '')
           .then((response) => {
@@ -135,16 +135,20 @@ const AgentInfo: FC<AgentInfoProps> = ({ agent, isLoading, msgs }) => {
               <span className="text-xs text-gray-400">
                 View history and current task lists of your Agent.
               </span>
-              <button
-                className="flex items-center gap-2 mx-1 mt-3 mb-2 text-white"
-                onClick={agentChatLog}
-              >
-                <ChatLog />
-                <span className="text-sm text-gray-100">Chat Log</span>
-                <span className="text-sm font-semibold text-gray-100">
-                  {msgs + 1}
-                </span>
-              </button>
+              {agent.deployed ? (
+                <button
+                  className="flex items-center gap-2 mx-1 mt-3 mb-2 text-white"
+                  onClick={agentChatLog}
+                >
+                  <ChatLog />
+                  <span className="text-sm text-gray-100">Chat Log</span>
+                  <span className="text-sm font-semibold text-gray-100">
+                    {msgs + 1}
+                  </span>
+                </button>
+              ) : (
+                <h3 className="text-sm text-white mt-4">Not Deployed</h3>
+              )}
               {/* <button
                 className="flex items-center gap-2 mx-1 my-2 text-white"
                 onClick={() => setPanel('task')}

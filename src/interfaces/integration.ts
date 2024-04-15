@@ -1,5 +1,5 @@
 export interface IIntegration {
-  id: number
+  id: string
   name: string
   description: string
   args_schema: string

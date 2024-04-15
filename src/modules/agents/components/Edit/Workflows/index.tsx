@@ -140,7 +140,10 @@ const AgentWorkFlow: FC = () => {
                   options={[
                     {
                       title: 'Edit',
-                      action: () => router.push(`/agents/workflow/${row.id}`),
+                      action: () =>
+                        router.push(`/agents/workflow/${row.id}`, undefined, {
+                          shallow: true,
+                        }),
                     },
                     {
                       title: 'Duplicate',

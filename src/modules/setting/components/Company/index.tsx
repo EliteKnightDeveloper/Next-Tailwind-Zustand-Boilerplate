@@ -24,7 +24,12 @@ const Company: FC = () => {
           </span>
         </div>
         <div className="flex flex-row gap-3 max-sm:justify-between">
-          <Button text="Edit Info" icon={<Edit />} onClick={showModal} />
+          <Button
+            text="Edit Info"
+            icon={<Edit />}
+            onClick={showModal}
+            className="px-4"
+          />
         </div>
       </div>
       <div className="flex flex-row items-center gap-3 mt-4">
@@ -40,7 +45,7 @@ const Company: FC = () => {
           <span className="text-xl font-semibold text-white max-sm:text-sm">
             Blackbox AI
           </span>
-          <span className="text-base font-normal text-gray-300 max-sm:text-sm">
+          <span className="mt-1 text-base font-normal text-gray-300 max-sm:text-sm">
             Last Updated 06/12/2023 - 14:08:52
           </span>
         </div>

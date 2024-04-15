@@ -18,7 +18,8 @@ import {
   Storage,
   Menu,
   Conversation,
-} from '../components/Icons'
+  Inbox,
+} from '@/common/components/Icons'
 import SideButton, { SideButtonProps } from './components/SideButton'
 import ChatsPanel from './components/Chat/ChatsPanel'
 import { appLinks } from '../utils/constants'
@@ -47,9 +48,9 @@ const sideButtons: SideButtonProps[] = [
     link: appLinks.agents,
   },
   {
-    icon: <Conversation />,
+    icon: <Inbox />,
     active: true,
-    text: 'Conversations',
+    text: 'Inbox',
     link: appLinks.converations,
   },
   {
@@ -80,7 +81,7 @@ const SidebarLoading: FC = () => (
           <div className="w-[37px] max-w-[37px] min-w-[37px]">
             <Logo />
           </div>
-          <span className="text-xl font-bold text-white">ELITE</span>
+          <span className="text-xl font-bold text-white">Azara</span>
         </div>
       </Link>
     </div>
@@ -164,149 +165,147 @@ const Sidebar: FC = () => {
         isMobileSidebarCollapsed ? 'max-sm:h-[75px]' : ''
       )}
     >
-      {isLoading || user === null ? (
+      {/* {isLoading || user === null ? (
         <SidebarLoading />
-      ) : (
-        <Fragment>
+      ) : ( */}
+      <Fragment>
+        <div
+          className={classNames(
+            'flex px-6 max-sm:px-5 justify-between max-sm:py-3 items-center z-10',
+            isSidebarCollapsed
+              ? 'sm:flex-col sm:gap-4 max-sm:border-b max-sm:border-[#A9A3C233] max-sm:h-[75px]'
+              : ''
+          )}
+        >
+          <Button
+            onClick={toggleMobileSidebar}
+            text={''}
+            variant="solid"
+            icon={<Menu />}
+            className="px-0 py-1 bg-transparent border-none sm:hidden"
+          />
+          <Link href="/dashboard">
+            <div className="flex items-center gap-2">
+              <div className="w-[37px] max-w-[37px] min-w-[37px]">
+                <Logo />
+              </div>
+              <span
+                className={classNames(
+                  'text-xl font-bold text-white',
+                  isSidebarCollapsed ? 'sm:hidden' : ''
+                )}
+              >
+                Azara
+              </span>
+            </div>
+          </Link>
+          <Button
+            onClick={toggleSidebar}
+            text={''}
+            variant="solid"
+            icon={
+              isSidebarCollapsed ? (
+                <div className="text-white hover:text-neon-100">
+                  <Expand />
+                </div>
+              ) : (
+                <div className="text-white hover:text-neon-100">
+                  <Collapse />
+                </div>
+              )
+            }
+            className="max-sm:hidden"
+          />
+          <div className="sm:hidden">
+            <Profile />
+          </div>
+        </div>
+        <div
+          className={classNames(
+            'max-sm:overflow-hidden flex-1 flex flex-col h-0',
+            isSidebarCollapsed ? 'max-sm:w-0' : 'max-sm:w-full'
+          )}
+        >
+          <div className="z-10 mt-4">
+            {sideButtons.map((sideButton, index) => (
+              <SideButton key={index} {...sideButton} />
+            ))}
+          </div>
           <div
             className={classNames(
-              'flex px-6 max-sm:px-5 justify-between max-sm:py-3 items-center z-10',
-              isSidebarCollapsed
-                ? 'sm:flex-col sm:gap-4 max-sm:border-b max-sm:border-[#A9A3C233] max-sm:h-[75px]'
-                : ''
+              'mt-4 mb-2 z-10',
+              isSidebarCollapsed ? 'px-2' : 'px-5'
             )}
           >
-            <Button
-              onClick={toggleMobileSidebar}
-              text={''}
-              variant="solid"
-              icon={<Menu />}
-              className="px-0 py-1 bg-transparent border-none sm:hidden"
-            />
-            <Link href="/dashboard">
-              <div className="flex items-center gap-2">
-                <div className="w-[37px] max-w-[37px] min-w-[37px]">
-                  <Logo />
-                </div>
-                <span
+            <Credit user={user!} />
+          </div>
+          <div
+            className={classNames(
+              'relative mt-3 max-sm:hidden',
+              isSidebarCollapsed ? 'px-2 flex justify-center flex-col' : 'px-6'
+            )}
+          >
+            <Profile />
+          </div>
+          {!isSidebarCollapsed && (
+            <div className={classNames('flex flex-col flex-1 h-0 z-10')}>
+              <div
+                className={classNames(
+                  isSidebarCollapsed ? 'py-2' : 'py-4',
+                  'flex gap-2 items-center text-white text-sm cursor-pointer px-6'
+                )}
+                onClick={() => {
+                  setChatOpened(!isChatOpened)
+                }}
+              >
+                <div
                   className={classNames(
-                    'text-xl font-bold text-white',
-                    isSidebarCollapsed ? 'sm:hidden' : ''
+                    isChatOpened ? '' : '-rotate-90',
+                    'transition-all'
                   )}
                 >
-                  ELITE
+                  <Arrow />
+                </div>
+                <span className="text-sm font-medium text-gray-100">
+                  My Chats
                 </span>
               </div>
-            </Link>
-            <Button
-              onClick={toggleSidebar}
-              text={''}
-              variant="solid"
-              icon={
-                isSidebarCollapsed ? (
-                  <div className="text-white hover:text-neon-100">
-                    <Expand />
-                  </div>
-                ) : (
-                  <div className="text-white hover:text-neon-100">
-                    <Collapse />
-                  </div>
-                )
-              }
-              className="max-sm:hidden"
-            />
-            <div className="sm:hidden">
-              <Profile />
+              <div
+                className={classNames(
+                  isChatOpened ? 'visible' : 'invisible',
+                  'flex-1 overflow-y-auto scrollbar-hide h-0 '
+                )}
+              >
+                <MyChats />
+              </div>
             </div>
-          </div>
-          <div
-            className={classNames(
-              'max-sm:overflow-hidden flex-1 flex flex-col h-0',
-              isSidebarCollapsed ? 'max-sm:w-0' : 'max-sm:w-full'
-            )}
-          >
-            <div className="z-10 mt-4">
-              {sideButtons.map((sideButton, index) => (
-                <SideButton key={index} {...sideButton} />
-              ))}
-            </div>
-            <div
-              className={classNames(
-                'mt-4 mb-2 z-10',
-                isSidebarCollapsed ? 'px-2' : 'px-5'
-              )}
-            >
-              <Credit user={user!} />
-            </div>
-            <div
-              className={classNames(
-                'relative mt-3 max-sm:hidden',
-                isSidebarCollapsed
-                  ? 'px-2 flex justify-center flex-col'
-                  : 'px-6'
-              )}
-            >
-              <Profile />
-            </div>
-            {!isSidebarCollapsed && (
-              <div className={classNames('flex flex-col flex-1 h-0 z-10')}>
+          )}
+          {isSidebarCollapsed && (
+            <div className="relative flex justify-center">
+              <div
+                className={classNames(
+                  isChatOpened
+                    ? 'bg-gradient-to-r from-startGrey to-endGrey w-full flex justify-center'
+                    : '',
+                  'py-4 cursor-pointer z-10 text-white hover:text-neon-100'
+                )}
+                onClick={toggleChatOpened}
+              >
+                <Message />
                 <div
                   className={classNames(
-                    isSidebarCollapsed ? 'py-2' : 'py-4',
-                    'flex gap-2 items-center text-white text-sm cursor-pointer px-6'
-                  )}
-                  onClick={() => {
-                    setChatOpened(!isChatOpened)
-                  }}
-                >
-                  <div
-                    className={classNames(
-                      isChatOpened ? '' : '-rotate-90',
-                      'transition-all'
-                    )}
-                  >
-                    <Arrow />
-                  </div>
-                  <span className="text-sm font-medium text-gray-100">
-                    My Chats
-                  </span>
-                </div>
-                <div
-                  className={classNames(
-                    isChatOpened ? 'visible' : 'invisible',
-                    'flex-1 overflow-y-auto scrollbar-hide h-0 '
+                    'absolute bottom-0 px-1 left-full',
+                    isChatOpened ? 'opacity-100' : 'opacity-0'
                   )}
                 >
-                  <MyChats />
+                  <ChatsPanel />
                 </div>
               </div>
-            )}
-            {isSidebarCollapsed && (
-              <div className="relative flex justify-center">
-                <div
-                  className={classNames(
-                    isChatOpened
-                      ? 'bg-gradient-to-r from-startGrey to-endGrey w-full flex justify-center'
-                      : '',
-                    'py-4 cursor-pointer z-10 text-white hover:text-neon-100'
-                  )}
-                  onClick={toggleChatOpened}
-                >
-                  <Message />
-                  <div
-                    className={classNames(
-                      'absolute top-0 px-1 left-full',
-                      isChatOpened ? 'opacity-100' : 'opacity-0'
-                    )}
-                  >
-                    <ChatsPanel />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </Fragment>
-      )}
+            </div>
+          )}
+        </div>
+      </Fragment>
+      {/* )} */}
       <div className="absolute left-0 bottom-0 -translate-x-[50%] translate-y-[50%] max-sm:hidden">
         <div className="w-[164px] h-[157px] bg-[#48BAFB] filter blur-[100px]" />
       </div>

@@ -47,10 +47,10 @@ const ChatLog: FC = () => {
                     title: 'Agent Chat Log',
                     content: <ChatLogs />,
                   },
-                  {
-                    title: 'Escalations',
-                    content: <Escalations />,
-                  },
+                  // {
+                  //   title: 'Escalations',
+                  //   content: <Escalations />,
+                  // },
                   {
                     title: 'All Contacts',
                     content: <ContactsData />,

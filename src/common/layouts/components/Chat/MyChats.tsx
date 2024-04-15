@@ -48,7 +48,7 @@ const MyChats: FC = () => {
                 id={chat.id}
                 text={chat.name}
                 messages={chat.messages.length}
-                avatar=""
+                avatar={chat.participants[0].image}
               />
             ))
         )}

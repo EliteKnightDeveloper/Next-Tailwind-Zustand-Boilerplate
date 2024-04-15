@@ -7,7 +7,7 @@ import { INotification } from '@/interfaces'
 
 interface NotificationPanelProps {
   data: INotification[]
-  onRead: (id: number) => void
+  onRead: (id: string) => void
   onReadAll: () => void
 }
 

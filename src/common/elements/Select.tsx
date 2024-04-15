@@ -6,7 +6,7 @@ import { Arrow, Check, Spinner } from '../components/Icons'
 export interface IOption {
   id: string | number
   label: string
-  value?: number
+  value?: number | string
 }
 
 export interface SelectProps {

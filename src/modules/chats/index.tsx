@@ -24,7 +24,7 @@ const AgentChat: FC = () => {
 
   const [isLoading, setLoading] = useState(true)
   const [agentInfo, setAgentInfo] = useState<IAgent>({
-    id: 0,
+    id: '',
     image: '',
     objective: '',
     name: '',
@@ -50,7 +50,7 @@ const AgentChat: FC = () => {
 
   useEffect(() => {
     setLoading(true)
-    api.chats.getMessages(queryParam.id as unknown as number).then((resp) => {
+    api.chats.getMessages(queryParam.id?.toString() || '').then((resp) => {
       setAgentInfo(resp.participants[0])
       setMessages(resp.chat.messages)
       setMsgCounts(resp.chat.messages.length)

@@ -9,7 +9,7 @@ import {
   Window,
 } from '@/common/components/Icons'
 import Button from '@/common/elements/Button'
-import Input from '@/common/elements/Input'
+import ChatInput from '@/common/elements/ChatInput'
 import { useThemeStore } from '@/common/stores/themeStore'
 import ChatItem from '../ChatItem'
 import { classNames } from '@/common/utils'
@@ -22,6 +22,7 @@ import { useChatStore } from '@/common/stores/chatStore'
 import { useRouter } from 'next/router'
 import Thinking from '@/common/elements/Thinking'
 import Writing from '@/common/elements/Writing'
+import { useUserStore } from '@/common/stores/userStore'
 
 interface ChatbarProps {
   isLoading: boolean
@@ -48,6 +49,7 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
   ])
   const router = useRouter()
   const [isFullScreening, setFullScreening] = useState(false)
+  const tenant = useUserStore((state) => state.tenant)
 
   const [isChatbarOpened, setChatbarOpened] = useThemeStore((state) => [
     state.isChatbarOpened,
@@ -101,7 +103,7 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
           agent_id: agent.id,
         })
         .then((response) => {
-          const chat_id = response.chat.id.toString()
+          const chat_id = response.id.toString()
           setChatId(chat_id)
           setChatCreating(false)
 
@@ -142,7 +144,7 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
     addQuery(query)
     setValue('query', '')
 
-    const source = api.integrations.SSE(chatId)
+    const source = api.integrations.SSE(tenant, chatId)
 
     source.onmessage = function (event) {
       let message
@@ -191,6 +193,12 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
         setThinking(false)
         source.close()
       })
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.shiftKey == false) {
+      return handleSubmit(onSubmit)()
+    }
   }
 
   return (
@@ -266,8 +274,10 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
                   })
                   .then((data) => {
                     setFullScreening(false)
-                    setChats([...chats, data.chat])
-                    router.push(`${appLinks.chat}/${data.chat.id}`)
+                    setChats([...chats, data])
+                    router.push(`${appLinks.chat}/${data.id}`, undefined, {
+                      shallow: true,
+                    })
                   })
               }}
             />
@@ -299,17 +309,18 @@ const Chatbar: FC<ChatbarProps> = ({ isLoading, agent }) => {
       {isChatbarOpened && (
         <div className="relative px-4 py-4 bg-dark">
           <span className="text-xs font-normal text-gray-300">
-            Estimated Credit: <span className="text-white">26</span>
+            Estimated Azara Credit: <span className="text-white">26</span>
           </span>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="w-full mt-2">
-              <Input
+              <ChatInput
                 placeholder="Type your message here..."
                 fullBorder
                 {...register('query')}
                 disabled={isChatCreating || isLoading || isThinking}
                 className="w-full"
                 position="end"
+                onKeyDown={handleKeyDown}
                 icon={
                   <button
                     className="z-10 text-gray-700 cursor-pointer hover:text-neon-100"

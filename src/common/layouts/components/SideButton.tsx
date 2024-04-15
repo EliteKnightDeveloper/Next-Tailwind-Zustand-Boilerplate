@@ -39,7 +39,7 @@ const SideButton: FC<SideButtonProps> = ({ icon, text, link }) => {
         )}
         onClick={() => {
           setMobileSidebarCollapsed(true)
-          router.push(link)
+          router.push(link, undefined, { shallow: true })
         }}
       >
         {icon}

@@ -2,27 +2,41 @@ import { FC } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import Pagination from './Pagination'
 import { paginationOptions } from './types'
+import Loading from '../Loading'
 
 interface CustomDataTableProps<T, K extends keyof T> {
   data: T[]
   columns: TableColumn<K>[]
   pagination?: boolean
+  loading?: boolean
 }
 
 const CustomDataTable: FC<CustomDataTableProps<any, any>> = ({
   data,
   columns,
   pagination = false,
+  loading = false,
 }) => {
   return (
     <DataTable
       columns={columns}
       data={data}
+      progressPending={loading}
+      progressComponent={
+        <h3 className="min-h-[100px] flex justify-center items-center w-full">
+          <Loading />
+        </h3>
+      }
       customStyles={{
+        progress: {
+          style: {
+            backgroundColor: 'transparent',
+          },
+        },
         responsiveWrapper: {
           style: {
-            overflow: 'visible'
-          }
+            overflow: 'visible',
+          },
         },
         table: {
           style: {

@@ -1,7 +1,7 @@
 import { FC } from 'react'
 
 interface NotificationItemProps {
-  id: number
+  id: string
   text: string
   date: string
   status: boolean

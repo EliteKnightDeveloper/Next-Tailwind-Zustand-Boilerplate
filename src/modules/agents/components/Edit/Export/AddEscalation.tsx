@@ -24,7 +24,7 @@ const AddEscalation: FC<AddEscalationProps> = ({ show, showModal }) => {
   const router = useRouter()
 
   const addEscalation = () => {
-    router.push('/agents/edit/escalation')
+    router.push('/agents/edit/escalation', undefined, { shallow: true })
   }
 
   return (

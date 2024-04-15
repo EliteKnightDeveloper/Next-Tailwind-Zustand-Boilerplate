@@ -14,6 +14,7 @@ import DocumentCard, {
 import { useNotifications } from '@/hooks/useNotifications'
 import { useDocStore } from '@/common/stores/docStore'
 import { useRouter } from 'next/router'
+import { getUniquedocs } from '@/common/utils'
 
 interface DocumentProps {
   docs: IDoc[]
@@ -71,7 +72,10 @@ const File: FC<Props> = ({ docsList }) => {
 
   const chatDocUpload = async (file: File) => {
     try {
-      const response = await api.docs.chatDocUpload(queryParam.id?.toString() || "", file)
+      const response = await api.docs.chatDocUpload(
+        queryParam.id?.toString() || '',
+        file
+      )
       if (Array.isArray(response)) {
         setDocLists((prevDocs) => [...prevDocs, ...response])
         setDocs([...docsList, ...response])
@@ -93,7 +97,7 @@ const File: FC<Props> = ({ docsList }) => {
     }
   }
 
-  const reupload = (docId: number) => {
+  const reupload = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -110,7 +114,7 @@ const File: FC<Props> = ({ docsList }) => {
       })
   }
 
-  const deleteDoc = (docId: number) => {
+  const deleteDoc = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -131,7 +135,7 @@ const File: FC<Props> = ({ docsList }) => {
       })
   }
 
-  const confirmDelete = (docId: number) => {
+  const confirmDelete = (docId: string) => {
     showConfirm({
       title: 'Delete this doc?',
       confirmText: 'Delete',
@@ -152,7 +156,7 @@ const File: FC<Props> = ({ docsList }) => {
           mode="side"
         />
         <div className="flex flex-col gap-4">
-          {docLists
+          {getUniquedocs(docLists)
             .filter((doc) => doc.type === 'file')
             .map((doc, index) => {
               return (
@@ -186,7 +190,7 @@ const Link: FC<Props> = ({ docsList }) => {
   const onSubmit = (register: FormType) => {
     setUpLoading(true)
     api.docs
-      .chatUrlUpload(queryParam.id?.toString() || "", register.url)
+      .chatUrlUpload(queryParam.id?.toString() || '', register.url)
       .then((response) => {
         setDocs([...docsList, response])
         setUpLoading(false)
@@ -204,7 +208,7 @@ const Link: FC<Props> = ({ docsList }) => {
     setValue('url', '')
   }
 
-  const reupload = (docId: number) => {
+  const reupload = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -221,7 +225,7 @@ const Link: FC<Props> = ({ docsList }) => {
       })
   }
 
-  const deleteDoc = (docId: number) => {
+  const deleteDoc = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -241,7 +245,7 @@ const Link: FC<Props> = ({ docsList }) => {
       })
   }
 
-  const confirmDelete = (docId: number) => {
+  const confirmDelete = (docId: string) => {
     showConfirm({
       title: 'Delete this doc?',
       confirmText: 'Delete',
@@ -286,12 +290,13 @@ const Link: FC<Props> = ({ docsList }) => {
         </form>
         {isUpLoading && <DocumentCardSkeleton />}
         <div className="flex flex-col gap-4">
-          {docsList
+          {getUniquedocs(docsList)
             .filter((doc) => doc.type === 'url')
-            .map((doc) => {
+            .map((doc, index) => {
               return (
                 <>
                   <DocumentCard
+                    key={index}
                     data={doc}
                     onReupload={() => reupload(doc.id)}
                     onDelete={() => confirmDelete(doc.id)}

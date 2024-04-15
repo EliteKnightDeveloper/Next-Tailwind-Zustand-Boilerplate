@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 const Agents: FC = () => {
   const router = useRouter()
   const onCreateAgent = () => {
-    router.push('/agents/create')
+    router.push('/agents/create', undefined, { shallow: true })
   }
 
   return (

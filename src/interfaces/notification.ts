@@ -1,5 +1,5 @@
 export interface INotification {
-  id: number
+  id: string
   text: string
   date: string
   status: boolean

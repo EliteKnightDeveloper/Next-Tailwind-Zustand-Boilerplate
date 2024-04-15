@@ -13,13 +13,14 @@ import Messenger from '~/static/icon/Messenger.svg'
 import Zendesk from '~/static/icon/Zendesk.svg'
 import Dropbox from '~/static/icon/Dropbox.svg'
 import GM from '~/static/icon/GM.svg'
-import ELITE from '~/static/icon/ELITE.svg'
+import Azara from '~/static/icon/Azara.svg'
 import Modal from '@/common/elements/Modal'
 import Widget from '../Export/Widget'
 
 import { useRouter } from 'next/router'
 import { useNotifications } from '@/hooks/useNotifications'
 import { formatPhoneNumber } from '@/common/utils'
+import { useAgents } from '@/hooks/useAgents'
 
 const Integrations: FC = () => {
   const router = useRouter()
@@ -34,8 +35,9 @@ const Integrations: FC = () => {
   const [isPinningWW, setPinningWW] = useState(false)
   const [isWWCreated, setWWCreated] = useState(false)
   const [isAddingNumber, setAddingNumber] = useState(false)
-  const [numbers, setNumbers] = useState<string[]>([])
   const { addNotification } = useNotifications()
+  const [whatsAppNumbers, setWhatsAppNumbers] = useState<WhatsAppNumber[]>([])
+  const { setAgentDeployed } = useAgents()
 
   useEffect(() => {
     api.agents.getAgent(query.id!.toString()).then((response) => {
@@ -52,9 +54,13 @@ const Integrations: FC = () => {
         setWhatsAppActive(true)
       }
 
-      setNumbers(res.map((t) => t.number))
+      setWhatsAppNumbers(res)
     })
   }, [])
+
+  useEffect(() => {
+    setAgentDeployed(agent?.id || '', whatsAppActive || widgetActive)
+  }, [whatsAppActive, widgetActive])
 
   const changeStatus = (indexName: string) => {
     setActive((prevIndexes) =>
@@ -107,7 +113,7 @@ const Integrations: FC = () => {
         Unleash your Agent with the power to access real-time information and
         seamlessly operate data.
       </span>
-      <div className="flex flex-row justify-between flex-1 gap-8 mt-6 max-sm:flex-col">
+      {/* <div className="flex flex-row justify-between flex-1 gap-8 mt-6 max-sm:flex-col">
         <Input
           placeholder="Search Integrations Library"
           className="w-full"
@@ -141,11 +147,11 @@ const Integrations: FC = () => {
             className="w-max"
           />
         </div>
-      </div>
+      </div> */}
       <div className="grid gap-6 mt-6 xl:grid-cols-3">
         <IntegrationCard
           name={'Web Widget'}
-          src={ELITE}
+          src={Azara}
           description={
             'A web widget is a small, self-contained, and often interactive component or application that can be easily embedded within a website or web application to perform a specific function or provide valuable information to users'
           }
@@ -217,42 +223,75 @@ const Integrations: FC = () => {
       <PhoneNumber
         isOpen={showModal}
         isLoading={isAddingNumber}
-        defaultNumbers={numbers.map((number) =>
-          formatPhoneNumber(number).slice(1, formatPhoneNumber(number).length)
-        )}
+        defaultNumbers={whatsAppNumbers}
         onClose={() => setShowModal(false)}
-        onSave={(added, removed, _numbers) => {
+        onSave={async (
+          agentNumber,
+          oldAgentNumber,
+          isPublic,
+          previousPublic,
+          added,
+          removed,
+          customerNames,
+          oldCustomerNames,
+          _numbers
+        ) => {
+          let success = true
           setAddingNumber(true)
 
-          Promise.all([
-            api.integrations.saveWhatsAppNumber(
-              agent?.id.toString() || '',
-              added
-            ),
-            api.integrations.removeWhatsAppNumber(
-              agent?.id.toString() || '',
-              removed
-            ),
-          ])
-            .then(() => {
-              addNotification({
-                type: 'Success',
-                text: 'Verified',
+          try {
+            if (whatsAppNumbers.length > 0) {
+              await api.integrations.removeWhatsAppNumber({
+                agent_id: agent?.id.toString() || '',
+                agentNumber: oldAgentNumber,
+                customerNumbers: removed,
+                usernames: [],
+                allow_everyone: isPublic,
               })
-              setShowModal(false)
+            }
+            const { response, status } =
+              await api.integrations.saveWhatsAppNumber({
+                agent_id: agent?.id.toString() || '',
+                agentNumber: agentNumber,
+                customerNumbers: added,
+                usernames: customerNames,
+                allow_everyone: isPublic,
+              })
+            if (status === 'Failed') {
+              await api.integrations.saveWhatsAppNumber({
+                agent_id: agent?.id.toString() || '',
+                agentNumber: oldAgentNumber,
+                customerNumbers: removed,
+                usernames: oldCustomerNames,
+                allow_everyone: previousPublic,
+              })
+
+              success = false
               setAddingNumber(false)
-            })
-            .catch(() => {
               addNotification({
                 type: 'Fail',
-                text: 'Failed to Save',
+                text: response,
               })
-              setShowModal(false)
-              setAddingNumber(false)
-            })
+              return
+            }
 
-          setWhatsAppActive(_numbers.length !== 0)
-          setNumbers(_numbers)
+            addNotification({
+              type: 'Success',
+              text: 'Verified',
+            })
+            setAddingNumber(false)
+            setShowModal(false)
+          } catch (e) {
+            addNotification({
+              type: 'Fail',
+              text: 'Failed to save',
+            })
+          }
+
+          if (success) {
+            setWhatsAppActive(true)
+            setWhatsAppNumbers(_numbers)
+          }
         }}
       />
 

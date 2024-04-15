@@ -1,7 +1,7 @@
 import { FC, HtmlHTMLAttributes, ReactNode, useEffect, useState } from 'react'
 import { classNames } from '../utils'
-import { ServerUrl } from '../utils/constants'
 import { inDevEnvironment } from '../utils/devenv'
+import { useUserStore } from '../stores/userStore'
 
 interface PageHeaderProps extends HtmlHTMLAttributes<HTMLAnchorElement> {
   children: ReactNode
@@ -11,6 +11,7 @@ const PageHeader: FC<PageHeaderProps> = ({ children, className }) => {
   const [scrolled, setScrolled] = useState(false)
   const [version, setVersion] = useState()
   const [url, setUrl] = useState<string>()
+  const [tenant] = useUserStore((state) => [state.tenant])
 
   const fetchVersion = async () => {
     try {
@@ -36,6 +37,8 @@ const PageHeader: FC<PageHeaderProps> = ({ children, className }) => {
       }
     }
 
+    const [url, setUrl] = useState<string>()
+    const [tenant] = useUserStore((state) => [state.tenant])
     window.addEventListener('scroll', handleScroll)
 
     return () => window.removeEventListener('scroll', handleScroll)
@@ -54,11 +57,11 @@ const PageHeader: FC<PageHeaderProps> = ({ children, className }) => {
       {children}
       {inDevEnvironment && (
         <div className="flex flex-col">
-          <span className="text-xs font-medium text-white max-sm:hidden">
+          <span className="text-[10px] font-medium text-white max-sm:hidden leading-[1]">
             FE: {url} v{version}
           </span>
-          <span className="text-xs font-medium text-white max-sm:hidden">
-            BE: {ServerUrl}
+          <span className="text-[10px] font-medium text-white max-sm:hidden leading-[1]">
+            BE: {`https://${tenant}.azara-ai.com`}
           </span>
         </div>
       )}

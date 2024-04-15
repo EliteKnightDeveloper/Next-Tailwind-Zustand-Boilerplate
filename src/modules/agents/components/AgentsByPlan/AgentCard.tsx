@@ -14,10 +14,10 @@ import { useUserStore } from '@/common/stores/userStore'
 export type AgentCardProps = {
   data: IAgent
   isCreatingChat?: boolean
-  onDulicate: (agentId: number) => void
-  onDelete: (agentId: number) => void
+  onDulicate: (agentId: string) => void
+  onDelete: (agentId: string) => void
   onClickChat: () => void
-  pinAgent: (agentId: number) => void
+  pinAgent: (agentId: string) => void
 }
 
 export const AgentCardSkeleton: FC = () => (
@@ -67,11 +67,11 @@ const AgentCard: FC<AgentCardProps> = ({
   const [setEditAgent] = useUserStore((state) => [state.setEditAgent])
 
   const linkEdit = () => {
-    router.push(`agents/edit/${data.id}`)
+    router.push(`agents/edit/${data.id}`, undefined, { shallow: true })
     setEditAgent(data.id.toString())
   }
 
-  const onPinAgent = (agentId: number) => {
+  const onPinAgent = (agentId: string) => {
     if (isPinning) return
     setPinning(true)
 
@@ -151,10 +151,12 @@ const AgentCard: FC<AgentCardProps> = ({
                   title: 'Edit',
                   action: linkEdit,
                 },
-                // {
-                //   title: 'Duplicate',
-                //   action: () => onDulicate(data.id),
-                // },
+                {
+                  title: 'Duplicate',
+                  action: () => {
+                    // onDulicate(data.id)
+                  },
+                },
                 {
                   title: 'Delete',
                   action: () => onDelete(data.id),

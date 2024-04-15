@@ -1,8 +1,6 @@
 import { IIntegration, IQuery } from '@/interfaces'
 import request, { integrationsRequest } from './request'
 
-const integrationsUrl = process.env.NEXT_PUBLIC_INTEGRATIONS_API_URL
-
 const integrationsWebUI = {
   webUI: (chatId: string, input: string) => {
     const payload = {
@@ -13,24 +11,42 @@ const integrationsWebUI = {
     return integrationsRequest.post<IQuery>(`/web_ui`, payload)
   },
 
-  saveWhatsAppNumber: (agent_id: string, numbers: string[]) =>
+  saveWhatsAppNumber: (data: {
+    agent_id: string
+    agentNumber: string
+    customerNumbers: string[]
+    usernames: string[]
+    allow_everyone: boolean
+  }) =>
     integrationsRequest.post<{
-      numbers: string[]
-    }>(`/whatsapp/${agent_id}`, { numbers }),
+      response: string
+      status: 'Failed' | 'Success'
+    }>(`/whatsapp/${data.agent_id}`, {
+      agentNumbers: [data.agentNumber],
+      customerNumbers: data.customerNumbers,
+      usernames: data.usernames,
+      allow_everyone: data.allow_everyone,
+    }),
 
   getWhatsAppNumber: (agentId: string) =>
-    integrationsRequest.get<
-      {
-        agent_id: number
-        number: string
-      }[]
-    >(`/whatsapp/${agentId}`),
+    integrationsRequest.get<WhatsAppNumber[]>(`/whatsapp/${agentId}`),
 
-  removeWhatsAppNumber: (agentId: string, numbers: string[]) =>
-    integrationsRequest.patch(`/whatsapp/${agentId}`, { numbers }),
+  removeWhatsAppNumber: (data: {
+    agent_id: string
+    agentNumber: string
+    customerNumbers: string[]
+    usernames: string[]
+    allow_everyone: boolean
+  }) =>
+    integrationsRequest.patch(`/whatsapp/${data.agent_id}`, {
+      agentNumbers: [data.agentNumber],
+      customerNumbers: data.customerNumbers,
+      usernames: data.usernames,
+      allow_everyone: data.allow_everyone,
+    }),
 
-  SSE: (chatId: string) => {
-    const sseUrl = `${integrationsUrl}/web_ui/${chatId}`
+  SSE: (tenant: string, chatId: string) => {
+    const sseUrl = `https://${tenant}.azara-ai.com:8000/blackbox/web_ui/${chatId}`
     return new EventSource(sseUrl)
   },
 

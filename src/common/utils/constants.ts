@@ -11,10 +11,18 @@ export const appLinks = {
   bookmarks: '/bookmarks',
   company: '/company',
   setting: '/setting',
-  converations: '/conversations/0',
+  converations: '/conversations/all',
+  signup: '/signup',
 }
 
 export const DEMO_CHAT = 'demo##chats'
+
+export enum ROLE {
+  ADMIN = 'admin',
+  OWNER = 'owner',
+  MANAGER = 'manager',
+  VIEWER = 'viewer',
+}
 
 export const Roles: IOption[] = [
   {
@@ -103,7 +111,6 @@ export const Times: IOption[] = [
 
 export const ImageUrl = process.env.NEXT_PUBLIC_ASSET_URL
 
-export const ServerUrl = process.env.NEXT_PUBLIC_API_URL
 export const HUMAN_AVATARS = [
   `${ImageUrl}/image.png`,
   `${ImageUrl}/image (1).png`,

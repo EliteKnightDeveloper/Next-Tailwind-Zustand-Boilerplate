@@ -16,14 +16,14 @@ const data: APIKeys[] = [
     keys: '19KDadsfadf2eHHHHadads8eqrwe',
     status: true,
     expire: '04/16/2023',
-    domain: 'https://www.elite.ai',
+    domain: 'https://www.azara.ai',
   },
   {
     id: 1,
     keys: '19KDadsfadf2eHHHHadads8eqrwe',
     status: false,
     expire: '04/16/2023',
-    domain: 'https://www.elite.ai',
+    domain: 'https://www.azara.ai',
   },
 ]
 

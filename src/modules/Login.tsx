@@ -57,13 +57,13 @@ const Login: FC = () => {
         email: register.email,
         password: register.password,
         onSuccess: (user: any) => {
-          createNewUser(user.email!, user.displayName || '', user.accessToken)
-            .then((userInfo) => {
-              setUser(userInfo)
-              setIsSignedIn(true)
-              setPageLoading(false)
-            })
-            .catch((error: any) => {})
+          // createNewUser(user.email!, user.displayName || '', user.accessToken)
+          //   .then((userInfo) => {
+          //     setUser(userInfo)
+          //     setIsSignedIn(true)
+          //     setPageLoading(false)
+          //   })
+          //   .catch((error: any) => {})
           setLoading(false)
           router.push('/dashboard')
           addNotification({
@@ -135,13 +135,7 @@ const Login: FC = () => {
     setLoading(true)
     attemptSignInWithGoogle({
       onSuccess: (user: any) => {
-        setUser(user)
-        setIsSignedIn(true)
         router.push('/dashboard')
-        addNotification({
-          type: 'Success',
-          text: 'Login Success',
-        })
         setLoading(false)
       },
       onFail: (error: any) => {
@@ -156,7 +150,6 @@ const Login: FC = () => {
 
   const loginMS = () => {
     setLoading(false)
-    alert('Login with MS')
   }
 
   const showForgotModal = (index: number) => {
@@ -185,7 +178,7 @@ const Login: FC = () => {
       <div className="flex flex-col justify-center items-center w-[580px] max-sm:w-full">
         <div className="flex flex-row justify-center items-center h-[55px] gap-4">
           <Logo />
-          <span className="text-3xl font-bold text-white">ELITE</span>
+          <span className="text-3xl font-bold text-white">Azara</span>
         </div>
         {/* {activeTab === 1 || activeTab === 2 ? (
           <Fragment>
@@ -310,9 +303,9 @@ const Login: FC = () => {
                   <div className="w-full h-0 border-b border-gray-300" />
                 </div>
               </div> */}
-        <div className="flex flex-col items-center justify-center gap-2 mt-7">
+        <div className="flex flex-col items-center justify-center gap-2 mt-8 mb-4">
           <div
-            className="flex flex-row items-center justify-center w-full gap-3 px-2 py-3 border border-gray-600 rounded-xl hover:cursor-pointer"
+            className="flex flex-row items-center justify-center w-full gap-3 px-6 py-3 border border-gray-600 rounded-xl hover:cursor-pointer"
             onClick={loginGoogle}
           >
             <Image src={Google} alt={'Google'} loading="lazy" />
@@ -320,7 +313,7 @@ const Login: FC = () => {
               Login with Google
             </span>
           </div>
-          <div
+          {/* <div
             className="flex flex-row items-center justify-center w-full gap-3 px-2 py-3 border border-gray-600 rounded-xl hover:cursor-pointer"
             onClick={loginMS}
           >
@@ -328,7 +321,7 @@ const Login: FC = () => {
             <span className="text-sm font-semibold text-white">
               Login with Microsoft
             </span>
-          </div>
+          </div> */}
         </div>
         {/* </form>
           </Fragment> */}

@@ -13,6 +13,7 @@ import Chatbar from './Chatbar'
 import api from '@/api'
 import { IAgent } from '@/interfaces'
 import MobileChatbar from './MobileChatbar'
+import { useAgents } from '@/hooks/useAgents'
 
 const EditAgent: FC = () => {
   const router = useRouter()
@@ -23,21 +24,13 @@ const EditAgent: FC = () => {
       state.isMobileChatbarOpened,
       state.setMobileChatbarOpened,
     ])
-
-  const [isLoading, setLoading] = useState(true)
+  const { agents, isLoading } = useAgents()
   const [agent, setAgent] = useState<IAgent>()
 
-  useEffect(
-    () => {
-      setLoading(true)
-      api.agents.getAgent(query.id!.toString()).then((response) => {
-        setAgent(response)
-        setLoading(false)
-      })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [query.id]
-  )
+  useEffect(() => {
+    if (isLoading) return
+    setAgent(agents.find((agent) => agent.id === query.id!.toString()))
+  }, [query.id, isLoading])
 
   const setMobileChatbar = () => {
     setMobileChatbarOpened(!isMobileChatbarOpened)

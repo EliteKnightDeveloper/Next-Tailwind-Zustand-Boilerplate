@@ -1,5 +1,5 @@
 import { FC, Fragment, useEffect, useState } from 'react'
-import { Quote } from '@/common/components/Icons'
+import { Upload, EmptyBox } from '@/common/components/Icons'
 import Select, { IOption } from '@/common/elements/Select'
 import MultiSelect, { MultiSelectOption } from '@/common/elements/MultiSelect'
 import { Channels } from '@/common/utils/constants'
@@ -13,6 +13,9 @@ import { useChatStore } from '@/common/stores/chatStore'
 import { IChat } from '@/interfaces'
 import { timeDifference } from '@/common/utils/date'
 import { classNames } from '@/common/utils'
+import Button from '@/common/elements/Button'
+import { exportChatLogs } from '@/common/utils/excel'
+import { useAgents } from '@/hooks/useAgents'
 
 const Credits: IOption[] = [
   { id: 0, value: 0, label: 'All' },
@@ -32,21 +35,22 @@ const Times: IOption[] = [
 
 const ChatLogs: FC = () => {
   const [logs, setLogs] = useState<IChat[]>([])
-  const [channels, setChannels] = useState<MultiSelectOption[]>([])
+  const [channels, setChannels] = useState<MultiSelectOption[]>(Channels)
   const [credit, setCredit] = useState<IOption>(Credits[0])
   const [time, setTime] = useState<IOption>(Times[0])
   const [startDate, setStartDate] = useState(
-    moment(new Date()).format('YYYY-MM-DD')
+    moment(new Date()).add(-1, 'month').format('YYYY-MM-DD')
   )
   const [endDate, setEndDate] = useState(
     moment(new Date()).format('YYYY-MM-DD')
   )
-  const [agents, setAgents] = useState<IOption[]>([])
+  const { agents, isLoading } = useAgents()
+  const [agentOptions, setAgentOptions] = useState<IOption[]>([])
   const [agent, setAgent] = useState<IOption>({
-    id: 0,
+    id: '',
     label: 'Select Agent',
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLogLoading, setLogLoading] = useState(false)
   const [isAgent, setIsAgent] = useState(false)
   const [setChatLogBarCollapsed] = useThemeStore((state) => [
     state.setChatLogBarCollapsed,
@@ -69,13 +73,13 @@ const ChatLogs: FC = () => {
   }
 
   useEffect(() => {
-    if (channels.length > 0 && Number(agent.id) > -1) {
+    if (channels.length > 0 && agent.id) {
       setIsAgent(false)
       const channelList = channels.map((channel) => {
         const formattedLabel = channel?.label!.toString().replace(/\s/g, '')
         return formattedLabel
       })
-      setIsLoading(true)
+      setLogLoading(true)
       api.chatLogs
         .getChatLogsByOwner(
           agent.id.toString(),
@@ -87,49 +91,73 @@ const ChatLogs: FC = () => {
           const result = response.filter((resp) => {
             return resp.messages.length > 0
           })
+          result.sort(
+            (a: any, b: any) =>
+              new Date(b.end_time).valueOf() - new Date(a.end_time).valueOf()
+          )
           setLogs(result)
-          setIsLoading(false)
+          setLogLoading(false)
         })
         .catch((err) => {})
     }
   }, [agent, startDate, endDate, channels, time, credit])
 
   useEffect(() => {
-    setChatroomID(0)
-    setIsLoading(true)
+    setChatroomID('all')
+    setLogLoading(true)
     setLogs([])
-    api.agents
-      .getAgentsByOwner()
-      .then((response) => {
-        const mappedAgents = response
-          .filter((agent) => {
-            return agent.deployed === true
-          })
-          .map((agent) => ({
-            id: agent.id,
-            label: agent.name,
-            value: agent.id,
-          }))
-        if (mappedAgents.length === 0) {
-          setAgents([{ id: -1, label: 'No Deployed Agent', value: 0 }])
-          setAgent({ id: -1, label: 'No Deployed Agent', value: 0 })
-          setIsAgent(true)
-        } else if (query.id !== '0') {
-          const selectedAgent = mappedAgents.find(
-            (agent) => agent.id === Number(query.id)
-          )
-          setAgent(selectedAgent!)
-          setAgents(mappedAgents)
-          setIsAgent(false)
-        } else {
-          setAgent(mappedAgents[0])
-          setAgents(mappedAgents)
-          setIsAgent(false)
-        }
-        setIsLoading(false)
-      })
-      .catch(() => {})
-  }, [])
+
+    if (isLoading) return
+    let mappedAgents = [{ id: 'all-agents', label: 'All', value: 'all-agents' }]
+    mappedAgents = [
+      ...mappedAgents,
+      ...agents
+        .filter((agent) => {
+          return agent.deployed === true
+        })
+        .map((agent) => ({
+          id: agent.id,
+          label: agent.name,
+          value: agent.id,
+        })),
+    ]
+    if (mappedAgents.length === 0) {
+      setAgentOptions([{ id: '', label: 'No Deployed Agent', value: '' }])
+      setAgent({ id: '', label: 'No Deployed Agent', value: '' })
+      setIsAgent(true)
+    } else if (query.id !== 'all') {
+      const selectedAgent = mappedAgents.find((agent) => agent.id === query.id)
+      setAgent(selectedAgent!)
+      setAgentOptions(mappedAgents)
+      setIsAgent(false)
+    } else {
+      // show all agent history
+      setAgent(mappedAgents[0])
+      setAgentOptions(mappedAgents)
+      setIsAgent(false)
+    }
+    setLogLoading(false)
+  }, [isLoading])
+
+  const exportToExcel = () => {
+    const data = []
+
+    for (const log of logs) {
+      for (let i = 0; i < log.messages.length; i += 2) {
+        data.push({
+          Channel: log.channel,
+          Agent: agent.label,
+          'Start Time': log.start_time,
+          'End Time': log.end_time,
+          'Interaction Time': log.interaction_time,
+          'Customer Message': log.messages[i],
+          'Agent Message': log.messages[i + 1],
+        })
+      }
+    }
+
+    exportChatLogs(data)
+  }
 
   const showChatHistory = (data: IChat) => {
     setChatLogBarCollapsed(true)
@@ -146,7 +174,7 @@ const ChatLogs: FC = () => {
             <div className="flex flex-col w-full gap-2">
               <span className="text-sm font-medium text-gray-100">Agent</span>
               <Select
-                options={agents}
+                options={agentOptions}
                 value={agent!}
                 onChange={(value) => {
                   setAgent(value)
@@ -158,13 +186,19 @@ const ChatLogs: FC = () => {
               <span className="text-sm font-medium text-gray-100">
                 Start Date
               </span>
-              <DatePicker onChange={(date) => onStartDateChange(date)} />
+              <DatePicker
+                onChange={(date) => onStartDateChange(date)}
+                defaultDate={moment(new Date()).add(-1, 'month').toDate()}
+              />
             </div>
             <div className="flex flex-col w-full gap-2">
               <span className="text-sm font-medium text-gray-100">
                 End Date
               </span>
-              <DatePicker onChange={(date) => onEndDateChange(date)} />
+              <DatePicker
+                onChange={(date) => onEndDateChange(date)}
+                defaultDate={new Date()}
+              />
             </div>
             <div className="flex flex-col w-full gap-2">
               <span className="text-sm font-medium text-gray-100">Channel</span>
@@ -211,11 +245,20 @@ const ChatLogs: FC = () => {
               Conversation
             </span>
             {/* <Quote /> */}
+            <div className="ml-auto z-[1]">
+              <Button
+                text="Export"
+                variant="gradient"
+                icon={<Upload />}
+                onClick={exportToExcel}
+                size="sm"
+              />
+            </div>
           </div>
           <div
             className={classNames(
               'z-10 flex flex-col  h-full gap-4 overflow-y-scroll scrollbar-hide',
-              isAgent ? 'items-center justify-center' : ''
+              isAgent || logs.length === 0 ? 'items-center justify-center' : ''
             )}
           >
             {logs.map((log, idx) => {
@@ -237,7 +280,7 @@ const ChatLogs: FC = () => {
                       </div>
                       <div className="flex flex-row items-start flex-1 gap-2">
                         <span className="text-sm font-medium text-white  min-w-[80px]">
-                          Agent:
+                          {log.primary_agent_name}:
                         </span>
                         <span className="text-sm text-gray-700 font-noraml">
                           {log.messages[1]}
@@ -256,9 +299,19 @@ const ChatLogs: FC = () => {
                 No Deployed Agents
               </span>
             )}
+            {logs.length === 0 ? (
+              <div className="flex flex-col gap-6">
+                <span className="flex justify-center">
+                  <EmptyBox />
+                </span>
+                <span className="px-4 sm:px-0 text-lg font-normal text-white text-center">
+                  No conversation has been created yet
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
-        {isLoading && (
+        {(isLogLoading || isLoading) && (
           <div className="absolute top-0 bottom-0 left-0 right-0 flex items-center justify-center">
             <Loading />
           </div>

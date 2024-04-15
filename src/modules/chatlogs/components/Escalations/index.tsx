@@ -22,14 +22,14 @@ interface Escalations {
 const data: Escalations[] = [
   {
     id: 0,
-    customer: 'Tran@elite.ai',
+    customer: 'Tran@azara.ai',
     owner: 'Owner',
     channel: 'Email',
     name: 'Tran',
     time: '5 mins ago',
     credit: '200',
     reason: 'Keywords',
-    response: 'Please reach out to elite.support',
+    response: 'Please reach out to azara.support',
     chatroomID: 3,
   },
 ]
@@ -45,12 +45,12 @@ const Escalations: FC = () => {
   const router = useRouter()
 
   const toChatPage = (chatroomID: number) => {
-    router.push(`/chat/${chatroomID}`)
+    router.push(`/chat/${chatroomID}`, undefined, { shallow: true })
   }
 
   useEffect(() => {
     api.agents
-      .getAgentsByOwner()
+      .getAllAgents()
       .then((response) => {
         const mappedAgents = response
           .filter((agent) => {

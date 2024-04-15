@@ -3,28 +3,35 @@ import Head from 'next/head'
 import 'tailwindcss/tailwind.css'
 
 import NotificationManager from '@/common/elements/NotificationManager'
-import Layout from '@/common/layouts'
 import '@/common/styles/global.css'
 import PopupContainer from '@/common/layouts/PopupContainer'
 import AuthContainer from '@/common/layouts/AuthContainer'
 import { Fragment } from 'react'
+import APIContainer from '@/common/layouts/APIContainer'
+
+import dynamic from 'next/dynamic'
+const Layout = dynamic(() => import('@/common/layouts'), {
+  ssr: false,
+})
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
     <Fragment>
       <Head>
-        <title>ELITE</title>
-        <link rel="shortcut icon" type="image/x-icon" href="/ELITE.ico" />
+        <title>Azara</title>
+        <link rel="shortcut icon" type="image/x-icon" href="/Azara.ico" />
       </Head>
-      <AuthContainer>
-        <Layout>
-          <PopupContainer>
-            <NotificationManager>
-              <Component {...pageProps} />
-            </NotificationManager>
-          </PopupContainer>
-        </Layout>
-      </AuthContainer>
+      <NotificationManager>
+        <AuthContainer>
+          <Layout>
+            <APIContainer>
+              <PopupContainer>
+                <Component {...pageProps} />
+              </PopupContainer>
+            </APIContainer>
+          </Layout>
+        </AuthContainer>
+      </NotificationManager>
     </Fragment>
   )
 }

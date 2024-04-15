@@ -9,6 +9,7 @@ import api from '@/api'
 import { DEMO_CHAT } from '@/common/utils/constants'
 import Loading from '@/common/components/Loading'
 import Thinking from '@/common/elements/Thinking'
+import { useUserStore } from '@/common/stores/userStore'
 
 const errorReply = 'Error reply'
 
@@ -29,6 +30,7 @@ const MobileChatbar: FC<MobileChatbarProps> = ({ isLoading, agent }) => {
   const [isChatCreating, setChatCreating] = useState(true)
   const { register, handleSubmit, setValue, setFocus } = useForm<FormType>()
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const tenant = useUserStore((state) => state.tenant)
 
   useEffect(() => {
     setFocus('query')
@@ -77,7 +79,7 @@ const MobileChatbar: FC<MobileChatbarProps> = ({ isLoading, agent }) => {
           agent_id: agent.id,
         })
         .then((response) => {
-          const chat_id = response.chat.id.toString()
+          const chat_id = response.id.toString()
           setChatId(chat_id)
           setChatCreating(false)
 
@@ -108,7 +110,7 @@ const MobileChatbar: FC<MobileChatbarProps> = ({ isLoading, agent }) => {
     addQuery(query)
     setValue('query', '')
 
-    const source = api.integrations.SSE(chatId)
+    const source = api.integrations.SSE(tenant, chatId)
 
     source.onmessage = function (event) {
       let message
@@ -190,7 +192,7 @@ const MobileChatbar: FC<MobileChatbarProps> = ({ isLoading, agent }) => {
       </div>
       <div className="relative px-4 py-4 bg-dark">
         <span className="text-xs font-normal text-gray-300">
-          Estimated Credit: <span className="text-white">26</span>
+          Estimated Azara Credit: <span className="text-white">26</span>
         </span>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="w-full mt-2">

@@ -22,12 +22,14 @@ import { usePopup } from '@/common/hooks/usePopup'
 import AddEscalation from './AddEscalation'
 import EditEscalation from './EditEscalation'
 import { IAgent } from '@/interfaces'
+import { classNames, isValidHttpUrl } from '@/common/utils'
 import { ImageUrl, Langs } from '@/common/utils/constants'
 import MultiSelect, { MultiSelectOption } from '@/common/elements/MultiSelect'
 import { useNotifications } from '@/hooks/useNotifications'
 import api from '@/api'
 import Required from '@/common/elements/Required'
 import Textarea from '@/common/elements/Textarea'
+import { useUserStore } from '@/common/stores/userStore'
 
 interface WidgetProps {
   agent?: IAgent
@@ -75,10 +77,13 @@ const Forms = [
   },
 ]
 
+type COLORMODE = 'DARK' | 'LIGHT'
+
 const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
   const [selectedImage, setSelectedImage] = useState<string>(
     ImageUrl + '/' + agent?.image || ImageUrl!
   )
+  const tenant = useUserStore((state) => state.tenant)
   const { addNotification } = useNotifications()
   const { query: queryParam } = useRouter()
   const [sketchPickerBGColor, setSketchPickerBGColor] = useState('#2D334D')
@@ -89,7 +94,6 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
   const [placeholder, setPlaceholder] = useState('')
   const [editdata, setEditData] = useState<Escalation>()
   const [profileValue, setProfileValue] = useState('Hello :)')
-  const [langs, setLangs] = useState<MultiSelectOption[]>([])
   const { showConfirm, hideConfirm } = usePopup()
   const [welcomeMessage, setWelcomeMessage] = useState(agent?.welcome)
   const [link, setLink] = useState('')
@@ -101,7 +105,8 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
   const [isSourceShown, setSourceShown] = useState(false)
   const [isChatHistoryShown, setChatHistoryShown] = useState(false)
   const [isCreatingLink, setCreatingLink] = useState(false)
-  const [website, setWebsite] = useState('')
+  const [website, setWebsite] = useState('https://')
+  const [mode, setMode] = useState<COLORMODE>('DARK')
 
   const showChat = () => {
     setShow(!show)
@@ -123,26 +128,46 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
         })
         return
       }
-      if (!website) {
+      if (!website || ['https://', 'http://'].includes(website)) {
         addNotification({
           type: 'Fail',
           text: 'Please type website link.',
         })
         return
       }
-
+      if (!isValidHttpUrl(website)) {
+        addNotification({
+          type: 'Fail',
+          text: 'Please type a valid website link.',
+        })
+        return
+      }
       setCreatingLink(true)
-      api.webwidget
-        .create({
+      Promise.all([
+        api.webwidget.create({
           agent_id: agent!.id,
           welcome_message: welcomeMessage,
-        })
-        .then((data) => {
+          contact_fields: forms.map((form) => form.label),
+        }),
+        api.cors.add(website),
+      ])
+        .then(([data]) => {
           onCreate()
           setCreatingLink(false)
           setLink(
-            `<azara-bot widget-id="${data.id}" agent-id="${queryParam.id}" show-form="${isContactShown}" show-source="${isSourceShown}" show-branding="${isBrandShown}" show-history="${isChatHistoryShown}" show-welcome="${showWelcome}" bg-color="${sketchPickerBGColor}" chat-color="${sketchPickerChatColor}"></azara-bot><script src="${SCRIPT_LINK}"></script>`
+            `<azara-bot widget-id="${data.id}" mode="${mode}" tenant-id="${tenant}" agent-id="${queryParam.id}" show-form="${isContactShown}" show-source="${isSourceShown}" show-branding="${isBrandShown}" show-history="${isChatHistoryShown}" show-welcome="${showWelcome}" bg-color="${sketchPickerBGColor}" chat-color="${sketchPickerChatColor}"></azara-bot><script src="${SCRIPT_LINK}"></script>`
           )
+
+          addNotification({
+            type: 'Success',
+            text: 'Web widget created successfully.',
+          })
+        })
+        .catch(() => {
+          addNotification({
+            type: 'Fail',
+            text: 'Web widget creation failed.',
+          })
         })
       return
     }
@@ -224,6 +249,12 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
     })
   }
 
+  const onWebsiteBlur = () => {
+    if (!website.startsWith('https://') && !website.startsWith('http://')) {
+      setWebsite(`https://${website}`)
+    }
+  }
+
   const removeForm = (index: number) => {
     setForms(forms.filter((item) => item.id !== index))
   }
@@ -259,7 +290,7 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                   alt={''}
                   width={64}
                   height={64}
-                  className="rounded-full"
+                  className="rounded-full max-h-16"
                   priority
                 />
                 <span className="flex justify-center items-center absolute bottom-0 right-0 h-6 w-6 rounded-full ring-1 ring-[#0C0D10] bg-gray-500 text-white hover:text-neon-100 hover:cursor-pointer">
@@ -285,8 +316,8 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
             </div>
           </div>
           <span className="mt-4 font-semibold text-white">Profile Mode</span>
-          <div className="flex flex-row justify-between gap-8">
-            <div className="flex flex-col w-full gap-2">
+          <div className="flex flex-row justify-between gap-4">
+            <div className="flex flex-col flex-1 gap-2">
               <span className="text-sm font-medium text-gray-100">
                 Widget Chat Color
               </span>
@@ -301,10 +332,12 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               <HexColorPicker
                 color={sketchPickerChatColor}
                 onChange={setSketchPickerChatColor}
-                className="mt-3"
+                style={{
+                  width: 150,
+                }}
               />
             </div>
-            <div className="flex flex-col w-full gap-2">
+            <div className="flex flex-col flex-1 gap-2">
               <span className="text-sm font-medium text-gray-100">
                 Widget BG Color
               </span>
@@ -317,8 +350,41 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               <HexColorPicker
                 color={sketchPickerBGColor}
                 onChange={setSketchPickerBGColor}
-                className="mt-3"
+                style={{
+                  width: 150,
+                }}
               />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-gray-100 whitespace-nowrap">
+                Text color
+              </span>
+              <div
+                className="flex items-center mb-4 cursor-pointer"
+                onClick={() => setMode('DARK')}
+              >
+                <input
+                  type="radio"
+                  checked={mode === 'DARK'}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label className="ms-2 text-sm font-medium text-slate-300 whitespace-nowrap cursor-pointer">
+                  Dark mode
+                </label>
+              </div>
+              <div
+                className="flex items-center mb-4 cursor-pointer"
+                onClick={() => setMode('LIGHT')}
+              >
+                <input
+                  type="radio"
+                  checked={mode === 'LIGHT'}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label className="ms-2 text-sm font-medium text-slate-300 whitespace-nowrap cursor-pointer">
+                  Light mode
+                </label>
+              </div>
             </div>
           </div>
           <div className="flex flex-col gap-3">
@@ -355,7 +421,7 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               role="Welcome Message"
             />
           </div>
-          <div className="flex flex-col gap-3 relative z-[2]">
+          {/* <div className="flex flex-col gap-3 relative z-[2]">
             <span className="text-sm font-medium text-gray-100">
               Chat Widget Language
             </span>
@@ -367,23 +433,31 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                 setLangs(values)
               }}
             />
-          </div>
+          </div> */}
           <div className="flex flex-col gap-3">
             <span className="text-sm font-medium text-gray-100">
               Your website link
               <Required />
             </span>
-            <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 z-[1] flex items-center justify-center pl-2 text-sm text-white">
-                https://
-              </div>
-              <Input
-                className="w-full pl-[53px]"
-                value={website}
-                onChange={(e) => setWebsite(e.currentTarget.value)}
-                role="Website Link"
-              />
-            </div>
+            <Input
+              className="w-full"
+              value={website}
+              onBlur={onWebsiteBlur}
+              onChange={(e) => setWebsite(e.currentTarget.value)}
+              onPaste={(e) => {
+                const pastedText = e.clipboardData.getData('text')
+                if (
+                  pastedText.startsWith('https://') ||
+                  pastedText.startsWith('http://')
+                ) {
+                  setWebsite(pastedText)
+                } else {
+                  setWebsite('https://' + pastedText)
+                }
+                e.preventDefault()
+              }}
+              role="Website Link"
+            />
           </div>
           <div className="flex justify-between">
             <span className="text-sm font-medium text-white">
@@ -452,7 +526,12 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                     borderColor: sketchPickerChatColor,
                   }}
                 >
-                  <span className="text-sm font-normal text-white">
+                  <span
+                    className={classNames(
+                      mode === 'DARK' ? 'text-white' : 'text-black',
+                      'text-sm font-normal'
+                    )}
+                  >
                     {welcomeMessage}
                   </span>
                   <div
@@ -471,7 +550,7 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                   alt={''}
                   width={64}
                   height={64}
-                  className="rounded-full"
+                  className="rounded-full max-h-16"
                   priority
                 />
               </div>
@@ -485,10 +564,20 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               }}
             >
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-white">
+                <span
+                  className={classNames(
+                    'text-base font-semibold',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
                   {agent?.name}
                 </span>
-                <span className="text-base font-normal text-gray-300">
+                <span
+                  className={classNames(
+                    'text-base font-normal',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
                   {agent?.role}
                 </span>
               </div>
@@ -503,7 +592,12 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                 width={72}
                 height={72}
               />
-              <span className="mt-2 text-sm font-normal text-center text-white">
+              <span
+                className={classNames(
+                  'mt-2 text-sm font-normal text-center',
+                  mode === 'DARK' ? 'text-white' : 'text-black'
+                )}
+              >
                 {profileValue}
               </span>
               <div className="flex flex-col items-center justify-center w-full p-3 mt-4 rounded-xl bg-dark">
@@ -519,15 +613,17 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                     </button>
                   }
                   position="end"
+                  color={mode === 'DARK' ? 'dark' : 'light'}
                 />
                 <div className="flex flex-col items-center justify-center mt-3">
                   <Button
                     text="Send message"
                     variant="solid"
                     className="border-none"
-                    size="md"
+                    size="sm"
                     style={{
                       backgroundColor: sketchPickerChatColor,
+                      color: mode === 'DARK' ? 'white' : 'black',
                     }}
                   />
                 </div>
@@ -540,8 +636,13 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                   backgroundColor: sketchPickerChatColor,
                 }}
               >
-                <span className="text-sm font-normal text-gray-300">
-                  Powered By ELITE
+                <span
+                  className={classNames(
+                    'text-sm font-normal',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
+                  Powered By Azara
                 </span>
               </div>
             )}
@@ -554,10 +655,20 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               }}
             >
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-white">
+                <span
+                  className={classNames(
+                    'text-base font-semibold',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
                   {agent?.name}
                 </span>
-                <span className="text-base font-normal text-gray-300">
+                <span
+                  className={classNames(
+                    'text-base font-normal',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
                   {agent?.role}
                 </span>
               </div>
@@ -566,15 +677,24 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
               className="flex flex-col px-6 py-2 "
               style={{ backgroundColor: sketchPickerBGColor }}
             >
-              <ChatItem
-                message={agent?.welcome!}
-                isAgent
-                role={agent?.role}
-                image={agent?.image}
-              />
+              <div className="flex w-full">
+                <div
+                  className={classNames(
+                    'w-4/5 p-3 text-sm font-normal leading-5 rounded-xl',
+                    mode === 'DARK'
+                      ? 'bg-gray-600 text-white'
+                      : 'bg-white text-black'
+                  )}
+                >
+                  Hello
+                </div>
+              </div>
               <div className="flex justify-end w-full mt-6">
                 <div
-                  className="w-4/5 p-3 text-sm font-normal leading-5 text-white rounded-xl"
+                  className={classNames(
+                    'w-4/5 p-3 text-sm font-normal leading-5 rounded-xl',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
                   style={{ backgroundColor: sketchPickerChatColor }}
                 >
                   Thanks for the quick response! Right now, I have accounts on
@@ -594,11 +714,18 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                       >
                         <Input
                           placeholder={form.label}
+                          value={form.label}
                           className="w-full"
                           onChange={(event) => onChangeForms(event, index)}
+                          color={mode === 'DARK' ? 'dark' : 'light'}
                         />
                         <div
-                          className="p-1 bg-gray-500 rounded-full hover:cursor-pointer"
+                          className={classNames(
+                            'p-1 rounded-full hover:cursor-pointer',
+                            mode === 'DARK'
+                              ? 'bg-gray-500 text-white'
+                              : 'bg-white text-black'
+                          )}
                           onClick={() => removeForm(index)}
                         >
                           <Minus />
@@ -610,21 +737,20 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                       className="w-full"
                       value={formTitle}
                       onChange={onChangeFormTitle}
+                      color={mode === 'DARK' ? 'dark' : 'light'}
                     />
                   </div>
                   <div className="flex flex-row items-center justify-between gap-2 mt-3">
                     <Button
                       text="Add a new field"
                       variant="solid"
-                      icon={<Plus />}
-                      onClick={addForm}
-                    />
-                    <Button
-                      text="Submit"
-                      variant="solid"
+                      className="border-none"
+                      size="sm"
                       style={{
                         backgroundColor: sketchPickerChatColor,
+                        color: mode === 'DARK' ? 'white' : 'black',
                       }}
+                      onClick={addForm}
                     />
                   </div>
                 </div>
@@ -650,18 +776,24 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
                   </button>
                 }
                 position="end"
+                color={mode === 'DARK' ? 'dark' : 'light'}
               />
               {isBrandShown && (
-                <span className="text-sm font-normal text-gray-300">
-                  Powered By ELITE
+                <span
+                  className={classNames(
+                    'text-sm font-normal text-gray-300',
+                    mode === 'DARK' ? 'text-white' : 'text-black'
+                  )}
+                >
+                  Powered By Azara
                 </span>
               )}
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4 mt-4">
-        <span className="text-base font-semibold text-white">Escalation</span>
+      <div className="flex flex-col gap-4 mt-6">
+        {/* <span className="text-base font-semibold text-white">Escalation</span>
         <span className="text-sm font-medium text-gray-400">
           If the chatbot cannot understand the customer intent for a
           predetermined number of times or customer, the chatbot automatically
@@ -673,7 +805,7 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
             variant="solid"
             onClick={showAddEscalationModal}
           />
-          <AddEscalation show={showAddModal} showModal={() => {}} />
+          <AddEscalation show={showAddModal} showModal={() => { }} />
           <div className="flex flex-col items-center justify-center mt-4 max-sm:overflow-x-scroll scrollbar-hide">
             <DataTable
               data={data}
@@ -726,10 +858,10 @@ const Widget: FC<WidgetProps> = ({ agent, onCreate }) => {
           </div>
           <EditEscalation
             show={showEditModal}
-            showModal={() => {}}
+            showModal={() => { }}
             data={editdata}
           />
-        </div>
+        </div> */}
         <div className="flex flex-col">
           <span className="text-sm font-medium text-gray-100">
             Copy script to Install

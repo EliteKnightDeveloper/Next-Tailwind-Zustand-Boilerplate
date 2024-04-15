@@ -1,12 +1,14 @@
+import { ROLE } from '@/common/utils/constants'
+
 export type UserRole = 'admin' | 'user'
 
 export interface IUser {
   uuid: string
-  id: number
+  id: string
   email: string
   phone: string
   name: string
-  role: string
+  role: ROLE
   image: string
   business_profile: string
   disabled: boolean
@@ -14,4 +16,10 @@ export interface IUser {
   subscription_id: number
   chatrooms: []
   agents: []
+}
+
+export interface CreateUserInput {
+  name: string
+  email: string
+  role: string
 }

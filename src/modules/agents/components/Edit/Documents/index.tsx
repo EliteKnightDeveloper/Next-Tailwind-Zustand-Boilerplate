@@ -10,6 +10,7 @@ import { useRouter } from 'next/router'
 import { usePopup } from '@/common/hooks/usePopup'
 import Loading from '@/common/components/Loading'
 import { useNotifications } from '@/hooks/useNotifications'
+import { getUniquedocs } from '@/common/utils'
 
 const DocumentsSkeleton: FC = () => {
   const skeletons = []
@@ -44,7 +45,7 @@ const Documents: FC = () => {
     []
   )
 
-  const deleteDoc = (docId: number) => {
+  const deleteDoc = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -64,7 +65,7 @@ const Documents: FC = () => {
       })
   }
 
-  const reupload = (docId: number) => {
+  const reupload = (docId: string) => {
     api.docs
       .deleteDoc(docId)
       .then(() => {
@@ -81,7 +82,7 @@ const Documents: FC = () => {
       })
   }
 
-  const confirmDelete = (docId: number) => {
+  const confirmDelete = (docId: string) => {
     showConfirm({
       title: 'Delete this doc?',
       confirmText: 'Delete',
@@ -112,6 +113,7 @@ const Documents: FC = () => {
           type: 'Fail',
           text: 'Upload Link Fail',
         })
+        setUrlUploading(false)
         setUploadOpen(!isUploadOpen)
       })
   }
@@ -169,15 +171,14 @@ const Documents: FC = () => {
           />
         </div>
         <div className="grid grid-cols-2 gap-4 mt-6 max-2xl:grid-cols-1">
-          {docs.map((doc) => {
+          {getUniquedocs(docs).map((doc, index) => {
             return (
-              <>
-                <DocumentCard
-                  data={doc}
-                  onReupload={() => reupload(doc.id)}
-                  onDelete={() => confirmDelete(doc.id)}
-                />
-              </>
+              <DocumentCard
+                key={index}
+                data={doc}
+                onReupload={() => reupload(doc.id)}
+                onDelete={() => confirmDelete(doc.id)}
+              />
             )
           })}
           {isLoading && <DocumentsSkeleton />}

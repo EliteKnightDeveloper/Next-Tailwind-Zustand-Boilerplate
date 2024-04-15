@@ -27,18 +27,18 @@ const AgentInfo: FC<AgentInfoProps> = ({ agent, isLoading }) => {
   useEffect(
     () => {
       api.docs
-        .getDocsByChat(queryParam.id?.toString() || "")
+        .getDocsByChat(queryParam.id?.toString() || '')
         .then((response) => {
           setDocs(response)
         })
-        .catch(() => { })
+        .catch(() => {})
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [agent.id]
   )
 
   const agentChatLog = () => {
-    router.push(`/conversations/${agent.id}`)
+    router.push(`/conversations/${agent.id}`, undefined, { shallow: true })
   }
 
   return (
@@ -50,13 +50,17 @@ const AgentInfo: FC<AgentInfoProps> = ({ agent, isLoading }) => {
               <span className="text-xs text-gray-400">
                 View history and current task lists of your Agent.
               </span>
-              <button
-                className="flex items-center gap-2 mx-1 mt-3 mb-2 text-white"
-                onClick={agentChatLog}
-              >
-                <ChatLog />
-                <span className="text-sm text-gray-100">Chat Log</span>
-              </button>
+              {agent.deployed ? (
+                <button
+                  className="flex items-center gap-2 mx-1 mt-3 mb-2 text-white"
+                  onClick={agentChatLog}
+                >
+                  <ChatLog />
+                  <span className="text-sm text-gray-100">Chat Log</span>
+                </button>
+              ) : (
+                <h3 className="text-sm text-white mt-3">Not Deployed</h3>
+              )}
               {/* <button
                 className="flex items-center gap-2 mx-1 my-2 text-white"
                 onClick={() => setPanel('task')}

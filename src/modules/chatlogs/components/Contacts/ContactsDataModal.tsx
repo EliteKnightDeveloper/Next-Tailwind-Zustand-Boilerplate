@@ -9,7 +9,7 @@ import Message from '@/modules/chats/components/ChatPanel/Message'
 import Avatar from '@/common/elements/Avatar'
 import { ImageUrl } from '@/common/utils/constants'
 import { useChatStore } from '@/common/stores/chatStore'
-import { exportExcel } from '@/common/utils/excel'
+import { exportChatLogs } from '@/common/utils/excel'
 
 interface ContactsDataModalProps extends ModalProps {
   agent: IAgent
@@ -30,19 +30,6 @@ export const ContactsDataModal: FC<ContactsDataModalProps> = ({
 
   const exportChatLog = () => {
     const data = contact
-
-    const headers = [
-      'Customer',
-      'Channel',
-      'Message',
-      'Datetime',
-      'Agent',
-      'Credits Used',
-      'Interaction Time',
-      'Date Exported',
-    ]
-
-    exportExcel(data, headers, 'ChatLog History')
   }
 
   useEffect(() => {

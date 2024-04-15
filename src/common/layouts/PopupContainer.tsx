@@ -16,6 +16,7 @@ const PopupContainer: FC<PopupContainerProps> = ({ children }) => {
     isConfirmOpen,
     isConfirming,
     title,
+    type,
     confirmText,
     message,
     hideConfirm,
@@ -28,6 +29,7 @@ const PopupContainer: FC<PopupContainerProps> = ({ children }) => {
       <ConfirmModal
         isOpen={isConfirmOpen}
         title={title}
+        type={type}
         confirmText={confirmText}
         message={message}
         onConfirm={onConfirm}

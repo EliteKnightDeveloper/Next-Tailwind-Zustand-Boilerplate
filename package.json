@@ -1,5 +1,5 @@
 {
-  "name": "ELITE",
+  "name": "azara",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css,md,json} --config ./.prettierrc.json"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.0.8",
@@ -18,6 +19,7 @@
     "@types/react": "18.2.17",
     "@types/react-dom": "18.2.7",
     "@types/showdown": "^2.0.2",
+    "@types/xlsx-populate": "github:JanLoebel/types-xlsx-populate",
     "airbnb": "^0.0.2",
     "axios": "^1.4.0",
     "chart.js": "^4.4.0",
@@ -29,6 +31,7 @@
     "file-saver": "^2.0.5",
     "firebase": "^10.1.0",
     "framer-motion": "^10.15.0",
+    "fs": "^0.0.1-security",
     "google-libphonenumber": "^3.2.33",
     "husky": "^8.0.3",
     "libphonenumber-js": "^1.10.51",
@@ -48,10 +51,12 @@
     "react-international-phone": "^3.1.2",
     "react-player": "^2.12.0",
     "react-select": "^5.7.7",
+    "react-textarea-autosize": "^8.5.3",
     "sheetjs-style": "^0.15.8",
     "showdown": "^2.1.0",
     "tailwind-scrollbar-hide": "^1.1.7",
     "typescript": "5.1.6",
+    "xlsx-populate": "^1.21.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
@@ -62,5 +67,10 @@
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
   }
 }

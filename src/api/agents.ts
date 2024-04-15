@@ -6,9 +6,7 @@ const agents = {
 
   getAllAgents: () => request.get<IAgent[]>('/agents/all/agents'),
 
-  getAgentsByOwner: () => request.get<IAgent[]>(`/agents/all/user`),
-
-  createAgent: (userId: number, agentData: IAgent, file: File) => {
+  createAgent: (userId: string, agentData: IAgent, file: File) => {
     const formData = new FormData()
     formData.append('avatar', file)
     return request.post<IAgent>(
@@ -32,19 +30,19 @@ const agents = {
     )
   },
 
-  duplicateAgent: (agentId: number, userId: number) =>
+  duplicateAgent: (agentId: string, userId: string) =>
     request.post<IAgent>(
       `/agents/duplicate?agent_id=${agentId}&user_id=${userId}`,
       {}
     ),
 
-  pinAgent: (agentId: number) =>
+  pinAgent: (agentId: string) =>
     request.post<IAgent>(`agents/toggle_pinned/${agentId}`, {}),
 
-  archiveAgent: (agentId: number) =>
+  archiveAgent: (agentId: string) =>
     request.delete<IAgent>(`/agents/${agentId}`),
 
-  deleteAllAgentsByOwner: (userId: number) =>
+  deleteAllAgentsByOwner: (userId: string) =>
     request.post(`/agents/deleteall_for_owner?user_id=${userId}`, {}),
 
   deleteAllAgents: () => request.post(`/agents/deleteall`, {}),

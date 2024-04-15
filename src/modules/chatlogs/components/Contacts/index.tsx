@@ -26,7 +26,7 @@ const ContactsData: FC = () => {
           position="start"
           placeholder="Search for contracts"
         />
-        <div className="grid gap-6 mt-6 xl:grid-cols-4 max-md:grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-6 mt-6 xl:grid-cols-3 2xl:grid-cols-4 max-md:grid-cols-1 lg:grid-cols-3">
           {contacts
             .filter((contact) => contact.messages.length > 0)
             .map((contact, index) => (

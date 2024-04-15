@@ -1,5 +1,5 @@
 export interface IAgent {
-  id: number
+  id: string
   name: string
   plan: string
   role: string

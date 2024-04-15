@@ -70,11 +70,11 @@ export default function DropdownMenu({
                       'bg-gray-600 hover:bg-gray-500 text-sm block px-2 py-2 cursor-pointer rounded-lg',
                       option.color ? option.color : 'text-white'
                     )}
+                    onClick={() => option.action!(rowData)}
                     key={nanoID}
                   >
                     <div
-                      className="flex items-center"
-                      onClick={() => option.action!(rowData)}
+                      className="flex items-center w-full"
                       role={
                         testRole
                           ? `${testRole}-${option.title}`
@@ -84,7 +84,7 @@ export default function DropdownMenu({
                       {option?.icon && (
                         <span className="mr-3 text-sm">{option?.icon}</span>
                       )}
-                      <span>{option.title}</span>
+                      <span className="flex-1">{option.title}</span>
                     </div>
                   </div>
                 </Menu.Item>

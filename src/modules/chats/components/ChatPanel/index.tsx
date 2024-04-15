@@ -3,7 +3,7 @@ import { FC, useEffect, useRef, useState } from 'react'
 import api from '@/api'
 import Avatar from '@/common/elements/Avatar'
 import { SquarePlus, Refresh, Send } from '@/common/components/Icons'
-import Input from '@/common/elements/Input'
+import ChatInput from '@/common/elements/ChatInput'
 import Message from './Message'
 import AddAgents from './AddAgents'
 import Skeleton from '@/common/elements/Skeleton'
@@ -14,6 +14,7 @@ import Tooltip from '@/common/elements/Tooltip'
 import { ImageUrl } from '@/common/utils/constants'
 import useChat from '@/common/hooks/useChat'
 import Thinking from '@/common/elements/Thinking'
+import { useUserStore } from '@/common/stores/userStore'
 
 const errorReply = 'Error reply'
 
@@ -27,6 +28,9 @@ interface ChatPanelProps {
   defaultMessages: string[]
 }
 
+var source: EventSource
+var changed = false
+
 const ChatPanel: FC<ChatPanelProps> = ({
   agent,
   isLoading,
@@ -38,7 +42,8 @@ const ChatPanel: FC<ChatPanelProps> = ({
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const messagesContainer = useRef<HTMLDivElement>(null)
   const { register, handleSubmit, setValue, setFocus } = useForm<FormType>()
-  const { updateChat, deleteChat } = useChat()
+  const { summarizeChat, deleteChat } = useChat()
+  const tenant = useUserStore((state) => state.tenant)
   const [isThinking, setThinking] = useState(false)
 
   const initialGreeting: IMessage = {
@@ -62,20 +67,24 @@ const ChatPanel: FC<ChatPanelProps> = ({
   }, [queryParam.id, isThinking])
 
   useEffect(() => {
+    if (isThinking) changed = true
     setMessages([])
+    setThinking(false)
+    source?.close()
+    clearTimeout(timeoutRef.current)
+  }, [queryParam.id])
 
+  useEffect(() => {
     return () => {
       if (localStorage.getItem('is-first-query') === 'true') {
         localStorage.setItem('is-first-query', 'false')
-        deleteChat(~~queryParam.id!)
+        deleteChat(queryParam.id?.toString() || '')
       }
     }
   }, [queryParam.id])
 
   useEffect(() => {
     if (Array.isArray(defaultMessages) && defaultMessages.length >= 1) {
-      localStorage.setItem('is-first-query', 'false')
-
       setMessages([
         initialGreeting,
         ...defaultMessages.map((message, index) => ({
@@ -142,6 +151,14 @@ const ChatPanel: FC<ChatPanelProps> = ({
     )
   }
 
+  const summarize = () => {
+    if (localStorage.getItem('is-first-query') === 'true') {
+      localStorage.setItem('is-first-query', 'false')
+      summarizeChat(queryParam.id?.toString() || '')
+    }
+    localStorage.setItem('is-first-query', 'false')
+  }
+
   const onSubmit = (form: FormType) => {
     const { query } = form
     if (!query || isThinking || !queryParam.id) return
@@ -149,12 +166,7 @@ const ChatPanel: FC<ChatPanelProps> = ({
     addQuery(query)
     setValue('query', '')
 
-    if (localStorage.getItem('is-first-query') === 'true') {
-      localStorage.setItem('is-first-query', 'false')
-      updateChat(~~queryParam.id, query)
-    }
-
-    const source = api.integrations.SSE(queryParam.id as string)
+    source = api.integrations.SSE(tenant, queryParam.id as string)
 
     source.onmessage = function (event) {
       let message
@@ -177,6 +189,8 @@ const ChatPanel: FC<ChatPanelProps> = ({
           }
           if (finalAnswer) {
             updateLastMessage(finalAnswer)
+
+            summarize()
             source.close()
             return false
           }
@@ -184,6 +198,7 @@ const ChatPanel: FC<ChatPanelProps> = ({
         return isThinking
       })
       timeoutRef.current = setTimeout(() => {
+        summarize()
         clearStreaming()
       }, 10000)
     }
@@ -192,6 +207,12 @@ const ChatPanel: FC<ChatPanelProps> = ({
     api.integrations
       .webUI(queryParam.id as string, query)
       .then((resp) => {
+        if (changed) {
+          setThinking(false)
+          changed = false
+          return
+        }
+
         if ((resp as any).error) {
           addMessage(errorReply, JSON.stringify(resp))
         } else {
@@ -203,6 +224,12 @@ const ChatPanel: FC<ChatPanelProps> = ({
         setThinking(false)
         source.close()
       })
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.shiftKey == false) {
+      return handleSubmit(onSubmit)()
+    }
   }
 
   return (
@@ -268,13 +295,14 @@ const ChatPanel: FC<ChatPanelProps> = ({
 
       <div className="z-10 px-6 py-4 bg-dark">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-row gap-4">
-          <Input
+          <ChatInput
             placeholder="Type your message here..."
             fullBorder
             {...register('query')}
             disabled={isThinking}
             className="w-full"
             position="end"
+            onKeyDown={handleKeyDown}
             icon={
               <button
                 className="z-10 text-gray-700 cursor-pointer hover:text-neon-100"
@@ -298,7 +326,7 @@ const ChatPanel: FC<ChatPanelProps> = ({
         </form>
         <div className="mt-2">
           <span className="text-xs font-normal text-gray-300">
-            Estimated Credit: <span className="text-white">150</span>
+            Estimated Azara Credit: <span className="text-white">150</span>
           </span>
         </div>
       </div>

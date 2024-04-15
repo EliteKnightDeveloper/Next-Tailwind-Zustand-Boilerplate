@@ -11,7 +11,7 @@ const AgentChatLogPage: FC = () => {
         <BreadCrumb
           crumbs={[
             {
-              text: 'Agent Chat Log',
+              text: 'Inbox',
               link: '',
             },
           ]}

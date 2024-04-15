@@ -5,23 +5,59 @@ import Modal from '@/common/elements/Modal'
 import Button from '@/common/elements/Button'
 import Select, { IOption } from '@/common/elements/Select'
 import Required from '@/common/elements/Required'
-
-const permission: IOption[] = [
-  { id: 0, label: 'Can View' },
-  { id: 1, label: 'Full Access' },
-]
+import api from '@/api'
+import { useNotifications } from '@/hooks/useNotifications'
+import { IUser } from '@/interfaces'
+import { ROLE } from '@/common/utils/constants'
 
 interface AddMemberProps {
   show: boolean
   showModal: (show: boolean) => void
+  onCreate: (created: IUser) => void
 }
 
-const AddMember: FC<AddMemberProps> = ({ show, showModal }) => {
+const AddMember: FC<AddMemberProps> = ({ show, showModal, onCreate }) => {
+  const permission: IOption[] = [
+    { id: 1, label: 'Admin', value: ROLE.ADMIN },
+    { id: 2, label: 'Manager', value: ROLE.MANAGER },
+    { id: 3, label: 'Viewer', value: ROLE.VIEWER },
+  ]
+
   const [defaultValue, setDefaultValue] = useState<IOption>(permission[0])
   const [isLoading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const { addNotification } = useNotifications()
 
   const changeSelect = (value: IOption) => {
     setDefaultValue(value)
+  }
+
+  const onSave = () => {
+    setLoading(true)
+
+    api.users
+      .createUser({
+        email,
+        name,
+        role: defaultValue.value as ROLE,
+      })
+      .then((res) => {
+        addNotification({
+          text: 'Invite member success.',
+          type: 'Success',
+        })
+        setLoading(false)
+        showModal(false)
+        onCreate(res)
+      })
+      .catch((err) => {
+        addNotification({
+          text: err.response.data.message,
+          type: 'Fail',
+        })
+        setLoading(false)
+      })
   }
 
   return (
@@ -44,7 +80,26 @@ const AddMember: FC<AddMemberProps> = ({ show, showModal }) => {
               <span className="text-sm font-normal text-gray-100">Email</span>
               <Required />
             </div>
-            <Input type="text" placeholder="Email address" className="w-full" />
+            <Input
+              type="text"
+              placeholder="Email address"
+              className="w-full"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+            />
+          </div>
+          <div className="flex flex-col w-full gap-2 max-sm:gap-3">
+            <div className="flex flex-row">
+              <span className="text-sm font-normal text-gray-100">Name</span>
+              <Required />
+            </div>
+            <Input
+              type="text"
+              placeholder="Agent name"
+              className="w-full"
+              value={name}
+              onChange={(e) => setName(e.currentTarget.value)}
+            />
           </div>
           <div className="flex flex-col w-full gap-2 max-sm:gap-3">
             <span className="text-sm font-normal text-gray-100">
@@ -63,7 +118,7 @@ const AddMember: FC<AddMemberProps> = ({ show, showModal }) => {
           </div>
         </div>
         <div className="flex justify-end w-full mt-6">
-          <Button text={'Save'} variant={'gradient'} isLoading={isLoading} />
+          <Button text="Add" isLoading={isLoading} onClick={onSave} />
         </div>
       </div>
     </Modal>

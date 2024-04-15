@@ -8,11 +8,20 @@ export interface InputProps
   xs?: 'sm' | 'md' | 'lg'
   icon?: JSX.Element | null
   position?: string
+  color?: 'dark' | 'light'
 }
 
 const Input: FC<InputProps> = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, icon, fullBorder = false, xs = 'lg', position, ...props },
+    {
+      className,
+      icon,
+      fullBorder = false,
+      xs = 'lg',
+      position,
+      color = 'dark',
+      ...props
+    },
     ref
   ) => {
     const [hasFocus, setHasFocus] = useState(false)
@@ -20,17 +29,19 @@ const Input: FC<InputProps> = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={classNames(
-          'flex items-center form-container relative',
+          'flex items-center relative',
           hasFocus ? 'active' : '',
           fullBorder ? 'full-border bg-transparent' : '',
-          className ? className : ''
+          className ? className : '',
+          color === 'dark' ? 'form-container' : 'bg-white rounded-xl'
         )}
       >
         {position === 'start' && <div className="ml-2">{icon}</div>}
         <input
           {...props}
           className={classNames(
-            'bg-transparent text-white px-2 relative outline-none  text-sm w-full',
+            'bg-transparent px-2 relative outline-none  text-sm w-full',
+            color === 'dark' ? 'text-white' : 'text-black',
             xs === 'lg' ? 'py-3.5' : '',
             xs === 'md' ? 'py-2.5' : '',
             xs === 'sm' ? 'py-1.5' : ''
@@ -38,8 +49,9 @@ const Input: FC<InputProps> = React.forwardRef<HTMLInputElement, InputProps>(
           onFocus={() => {
             setHasFocus(true)
           }}
-          onBlur={() => {
+          onBlur={(e) => {
             setHasFocus(false)
+            props.onBlur && props.onBlur(e)
           }}
           ref={ref}
           autoComplete="off"

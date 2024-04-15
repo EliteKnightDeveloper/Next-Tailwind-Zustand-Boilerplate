@@ -32,7 +32,7 @@ const TQA: FC = () => {
 
   useEffect(() => {
     api.agents
-      .getAgentsByOwner()
+      .getAllAgents()
       .then((response) => {
         const mappedAgents = response.map((agent) => ({
           id: agent.id,

@@ -13,7 +13,7 @@ import { Task } from '@/interfaces'
 import Tooltip from '@/common/elements/Tooltip'
 
 interface TaskListProps {
-  agentId: number
+  agentId: string
   onBack: (type: string) => void
 }
 
@@ -202,7 +202,7 @@ const TaskList: FC<TaskListProps> = ({ agentId, onBack }) => {
           </div>
         ) : (
           <div className="flex flex-row items-center justify-between w-full">
-            <Tooltip description={'Estimated Credit: 10'}>
+            <Tooltip description={'Estimated Azara Credit: 10'}>
               <Button text={'Continue'} variant="solid" />
             </Tooltip>
             <Button text={'Run the task list'} variant="gradient" />

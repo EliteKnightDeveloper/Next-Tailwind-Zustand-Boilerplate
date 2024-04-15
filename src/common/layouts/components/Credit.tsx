@@ -19,7 +19,7 @@ const Credit: FC<CreditProps> = ({ user }) => {
     <div className="flex flex-row items-center justify-center w-full gap-8 p-4 bg-transparent package-card">
       {!isSidebarCollapsed && (
         <div className="flex justify-left">
-          <span className="text-xs font-medium text-white">Credits</span>
+          <span className="text-xs font-medium text-white">Azara Credits</span>
         </div>
       )}
       <div

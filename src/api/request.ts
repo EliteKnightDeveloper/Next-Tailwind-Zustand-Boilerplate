@@ -1,8 +1,6 @@
 import axios, { AxiosResponse } from 'axios'
 import { firebaseAuth } from './firebaseConfig'
 
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL
-
 const responseBody = <T>(response: AxiosResponse<T>) => response.data
 
 axios.interceptors.request.use(async (config) => {
@@ -16,7 +14,7 @@ axios.interceptors.response.use(
   (config) => config,
   (res) => {
     try {
-      if (res.response.status === 401) {
+      if (res.response && res.response.status === 401) {
         firebaseAuth.signOut()
       }
     } catch (e) {
@@ -26,9 +24,7 @@ axios.interceptors.response.use(
   }
 )
 
-const axiosIntegrations = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_INTEGRATIONS_API_URL,
-})
+export const axiosIntegrations = axios.create()
 
 const request = {
   get: <T>(url: string) => axios.get<T>(url).then(responseBody),

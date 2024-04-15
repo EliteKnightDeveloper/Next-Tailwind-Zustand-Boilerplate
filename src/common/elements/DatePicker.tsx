@@ -21,6 +21,7 @@ const MONTHS = [
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 export interface DatePickerProps {
+  defaultDate: Date
   onChange: (date: Date) => void
 }
 
@@ -28,13 +29,13 @@ function isNode(element: EventTarget | null): element is Node {
   return element instanceof Node
 }
 
-export default function DatePicker({ onChange }: DatePickerProps) {
+export default function DatePicker({ defaultDate, onChange }: DatePickerProps) {
   const [month, setMonth] = useState(new Date().getMonth())
   const [year, setYear] = useState(new Date().getFullYear())
   const [no_of_days, setNumDays] = useState<number[]>([])
   const [blankdays, setBlankDays] = useState<number[]>([])
   const [showDatepicker, setShowDatepicker] = useState(false)
-  const [date, setDate] = useState<Date>(new Date())
+  const [date, setDate] = useState<Date>(defaultDate)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

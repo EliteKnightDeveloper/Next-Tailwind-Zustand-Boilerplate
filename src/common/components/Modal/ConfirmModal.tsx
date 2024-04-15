@@ -2,6 +2,7 @@ import { Fragment, FC } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { TrashAgent } from '../Icons'
 import Button from '@/common/elements/Button'
+import { PopupType } from '@/common/stores/popupStore'
 
 export interface ConfirmModalProps {
   isOpen: boolean
@@ -11,6 +12,7 @@ export interface ConfirmModalProps {
   confirmText: string
   onConfirm: () => void
   onCancel: () => void
+  type?: PopupType
 }
 
 const ConfirmModal: FC<ConfirmModalProps> = ({
@@ -21,6 +23,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({
   message,
   onConfirm,
   onCancel,
+  type = 'Delete',
 }) => (
   <Transition.Root show={isOpen} as={Fragment}>
     <Dialog as="div" className="relative z-[1000]" onClose={() => false}>
@@ -56,9 +59,11 @@ const ConfirmModal: FC<ConfirmModalProps> = ({
                   >
                     {title}
                   </Dialog.Title>
-                  <div className="flex justify-center mt-3">
-                    <TrashAgent />
-                  </div>
+                  {type === 'Delete' && (
+                    <div className="flex justify-center mt-3">
+                      <TrashAgent />
+                    </div>
+                  )}
                   <div className="flex justify-center mt-5">
                     <p className="text-sm text-white text-center max-w-[250px]">
                       {message}

@@ -1,5 +1,5 @@
 export interface IDoc {
-  id: number
+  id: string
   filename: string
   type: string
   owner: string

@@ -36,9 +36,14 @@ const ChatsPanel: FC = () => {
   }, [userId])
 
   return (
-    <div className="flex flex-col justify-center px-6 py-4 bg-black rounded-xl w-max form-container">
+    <div className="flex flex-col justify-center px-6 py-4 bg-black rounded-xl w-[300px] form-container">
       <span className="text-sm font-bold text-gray-100">My Chats</span>
-      <div className="h-[150px] overflow-scroll scrollbar-hide">
+      <div
+        className="h-[100px] overflow-scroll scrollbar-hide mt-4 relative z-[4]"
+        onClick={(e) => {
+          e.stopPropagation()
+        }}
+      >
         {isLoading ? (
           <MyChatsSkeleton />
         ) : (
@@ -50,7 +55,7 @@ const ChatsPanel: FC = () => {
                 id={chat.id}
                 text={chat.name}
                 messages={chat.messages.length}
-                avatar=""
+                avatar={chat.participants[0].image}
               />
             ))
         )}

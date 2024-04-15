@@ -9,6 +9,7 @@ import { useChatStore } from '@/common/stores/chatStore'
 import { usePopup } from '@/common/hooks/usePopup'
 import Loading from '@/common/components/Loading'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useAgents } from '@/hooks/useAgents'
 
 const AgentsByPlanSkeleton: FC = () => {
   const skeletons = []
@@ -21,10 +22,9 @@ const AgentsByPlanSkeleton: FC = () => {
 }
 
 const AgentsByPlan: FC = () => {
-  const [agents, setAgents] = useState<IAgent[]>([])
   const [pinnedAgents, setPinnedAgents] = useState<IAgent[]>([])
   const [unpinnedAgents, setUnpinnedAgents] = useState<IAgent[]>([])
-  const [isLoading, setLoading] = useState(false)
+  const [archivedAgents, setArchivedAgents] = useState<IAgent[]>([])
   const [isDuplicating, setDuplicating] = useState(false)
   const [archived, setArchived] = useState(true)
   const [isNameModalOpen, setNameModalOpen] = useState(false)
@@ -34,103 +34,42 @@ const AgentsByPlan: FC = () => {
     state.setChats,
   ])
   const router = useRouter()
-  const { showConfirm, hideConfirm } = usePopup()
-  const [isChatCreating, setChatCreating] = useState<number>()
+  const { showConfirm, hideConfirm, setIsConfirming } = usePopup()
+  const [isChatCreating, setChatCreating] = useState<string>()
   const { addNotification } = useNotifications()
-
-  useEffect(
-    () => {
-      setLoading(true)
-      api.agents
-        .getAgentsByOwner()
-        .then((response) => {
-          setAgents(response)
-          setLoading(false)
-        })
-        .catch(() => {
-          setLoading(false)
-        })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
+  const { agents, isLoading, deleteAgent, pinAgent } = useAgents()
 
   useEffect(() => {
-    setPinnedAgents(agents?.filter((agent) => agent.pinned))
-    setUnpinnedAgents(agents?.filter((agent) => !agent.pinned))
+    setPinnedAgents(
+      agents
+        ?.filter((agent) => !agent.archived && agent.pinned)
+        .sort((a, b) => (Number(a.deployed) - Number(b.deployed) >= 0 ? -1 : 1))
+    )
+    setUnpinnedAgents(
+      agents
+        ?.filter((agent) => !agent.archived && !agent.pinned)
+        .sort((a, b) => (Number(a.deployed) - Number(b.deployed) >= 0 ? -1 : 1))
+    )
+    setArchivedAgents(agents?.filter((agent) => agent.archived))
   }, [agents])
 
   const toggleNameModalOpen = () => {
     setNameModalOpen(!isNameModalOpen)
   }
 
-  const showArchivedAgents = () => {
-    setArchived(!archived)
-    const archivedAgents = agents.filter(
-      (item: IAgent) => item.archived === archived
-    )
-    setAgents(archivedAgents!)
-  }
-
-  const duplicateAgent = (agentId: number) => {
-    setDuplicating(true)
-    api.agents
-      .duplicateAgent(agentId, user!.id)
-      .then((response) => {
-        setAgents([...agents, response])
-        setDuplicating(false)
-        addNotification({
-          type: 'Success',
-          text: 'Duplicate Agent Success',
-        })
-      })
-      .catch((error) => {
-        setDuplicating(false)
-        addNotification({
-          type: 'Fail',
-          text: 'Duplicate Agent Fail',
-        })
-      })
-  }
-
-  const deleteAgent = (agentId: number) => {
-    api.agents
-      .archiveAgent(agentId)
-      .then(() => {
-        agents.map((agent) =>
-          agent.id == agentId
-            ? {
-                ...agent,
-                archived: true,
-              }
-            : agent
-        )
-        addNotification({
-          type: 'Success',
-          text: 'Archive Agent Success',
-        })
-      })
-      .catch(() => {
-        addNotification({
-          type: 'Fail',
-          text: 'Archive Agent Fail',
-        })
-      })
-  }
-
   const onClickChat = (agent: IAgent) => {
     setChatCreating(agent.id)
+    localStorage.setItem('is-first-query', 'true')
     api.chats
       .createChat({
         name: 'Untitled',
         agent_id: agent.id,
       })
       .then((data) => {
-        setChats([...chats, data.chat])
-        setChatCreating(-1)
+        setChats([...chats, data])
+        setChatCreating('')
         toggleNameModalOpen()
-        router.push(`${appLinks.chat}/${data.chat.id}`)
-        localStorage.setItem('is-first-query', 'true')
+        router.push(`${appLinks.chat}/${data.id}`)
         addNotification({
           type: 'Success',
           text: 'Chat Create Success',
@@ -138,7 +77,7 @@ const AgentsByPlan: FC = () => {
       })
       .catch(() => {
         toggleNameModalOpen()
-        setChatCreating(-1)
+        setChatCreating('')
         addNotification({
           type: 'Fail',
           text: 'Chat Create Fail',
@@ -146,24 +85,19 @@ const AgentsByPlan: FC = () => {
       })
   }
 
-  const onDeleteAgent = (agentId: number) => {
+  const onDeleteAgent = (agentId: string) => {
     showConfirm({
       title: 'Delete this AI agent?',
       confirmText: 'Delete',
       message: 'This action is permanent and cannot be undone.',
       onConfirm: () => {
-        hideConfirm()
-        deleteAgent(agentId)
+        setIsConfirming(true)
+        deleteAgent(agentId).then(() => {
+          hideConfirm()
+          setIsConfirming(false)
+        })
       },
     })
-  }
-
-  const pinAgent = (agentId: number) => {
-    setAgents(
-      agents.map((agent) =>
-        agent.id === agentId ? { ...agent, pinned: !agent.pinned } : agent
-      )
-    )
   }
 
   return (
@@ -179,9 +113,12 @@ const AgentsByPlan: FC = () => {
               {pinnedAgents.map((agent: IAgent, id: number) => {
                 return (
                   <AgentCard
-                    data={agent}
+                    data={{
+                      ...agent,
+                      pinned: agent.deployed || agent.pinned,
+                    }}
                     key={id}
-                    onDulicate={() => duplicateAgent(agent.id)}
+                    onDulicate={() => {}}
                     onDelete={() => onDeleteAgent(agent.id)}
                     pinAgent={() => pinAgent(agent.id)}
                     onClickChat={() => {
@@ -203,7 +140,7 @@ const AgentsByPlan: FC = () => {
                     <AgentCard
                       data={agent}
                       key={id}
-                      onDulicate={() => duplicateAgent(agent.id)}
+                      onDulicate={() => {}}
                       onDelete={() => onDeleteAgent(agent.id)}
                       pinAgent={() => pinAgent(agent.id)}
                       onClickChat={() => {

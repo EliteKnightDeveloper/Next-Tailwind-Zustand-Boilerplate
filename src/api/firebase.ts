@@ -10,7 +10,6 @@ import {
 } from 'firebase/auth'
 import { firebaseAuth } from './firebaseConfig'
 import { IUser } from '@/interfaces'
-const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const GoogleAuthProvider = new _GoogleAuthProvider()
 
@@ -147,6 +146,7 @@ export const updateUserProfile = ({
 }
 
 export const createNewUser = async (
+  tenant: string,
   email: string,
   name: string,
   token: string
@@ -159,7 +159,7 @@ export const createNewUser = async (
   const raw = JSON.stringify({
     email: email,
     name: name,
-    role: 'user',
+    role: 'viewer',
     image: 'http://static.azara-ai.com/Default.png',
     business_profile: '',
     subscription_id: null,
@@ -176,11 +176,17 @@ export const createNewUser = async (
   }
 
   return new Promise<IUser>((resolve, reject) => {
-    fetch(`${API_URL}/register_or_login`, requestOptions)
-      .then((response) => response.json())
+    fetch(`https://${tenant}.azara-ai.com:9000/login`, requestOptions)
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.message)
+        return data
+      })
       .then((result) => {
         resolve(result)
       })
-      .catch((error) => reject(error))
+      .catch((error) => {
+        reject(error.message)
+      })
   })
 }

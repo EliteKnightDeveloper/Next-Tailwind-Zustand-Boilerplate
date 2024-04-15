@@ -7,14 +7,14 @@ const useChat = () => {
     state.setChats,
   ])
 
-  const updateChat = (id: number, name: string) => {
-    api.chats.renameChat(id, name).then(() => {
+  const updateChat = (id: string, name: string) => {
+    api.chats.renameChat(id, name).then((res) => {
       setChats(
         chats.map((chat) =>
           chat.id === id
             ? {
                 ...chat,
-                name,
+                name: res.chat.name,
               }
             : chat
         )
@@ -22,7 +22,22 @@ const useChat = () => {
     })
   }
 
-  const deleteChat = (id: number) => {
+  const summarizeChat = (id: string) => {
+    api.chats.summarizeChat(id).then((res) => {
+      setChats(
+        chats.map((chat) =>
+          chat.id === id
+            ? {
+                ...chat,
+                name: res.chat.name,
+              }
+            : chat
+        )
+      )
+    })
+  }
+
+  const deleteChat = (id: string) => {
     setChats(chats.filter((chat) => chat.id !== id))
     api.chats.deleteChat(id)
   }
@@ -30,6 +45,7 @@ const useChat = () => {
   return {
     updateChat,
     deleteChat,
+    summarizeChat,
   }
 }
 

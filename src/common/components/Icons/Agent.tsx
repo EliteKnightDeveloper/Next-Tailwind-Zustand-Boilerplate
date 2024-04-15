@@ -509,7 +509,7 @@ export const Minus: FC = () => {
     >
       <path
         d="M3.33398 8H12.6673"
-        stroke="white"
+        stroke="currentColor"
         strokeWidth="1.33333"
         strokeLinecap="round"
         strokeLinejoin="round"
